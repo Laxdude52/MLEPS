@@ -255,7 +255,7 @@ class model:
                 param_distributions=self.param_dist, 
                 n_iter=n_iter,
                 n_jobs=-1,
-                cv=cv, 
+                cv=cv,
                 random_state=42,
                 verbose=True,
                 )
