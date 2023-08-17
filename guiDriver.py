@@ -68,7 +68,7 @@ def renewablesWindow():
             renewables_window['-Wind Future Drop-'].update(disabled=False)
             renewables_window['Wind Future View'].update(disabled=False)
 
-def create_models(mType):
+#def create_models(mType):
     
     
     

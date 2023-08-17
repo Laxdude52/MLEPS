@@ -17,3 +17,19 @@ r2021 = pd.read_csv("BS_2021.csv")
 r2022 = pd.read_csv("BS_2022.csv")
 
 solarDataList = [r2016, r2017, r2018, r2019, r2020, r2021, r2022]
+
+windDataList = 'NA'
+energyDemandList = 'NA'
+coalList = 'NA'
+
+hydroList1 = 'NA'
+hydroList2 = 'NA'
+
+combList1 = 'NA'
+combList2 = 'NA'
+combList3 = 'NA'
+combList4 = 'NA'
+combList5 = 'NA'
+combList6 = 'NA'
+combList7 = 'NA'
+

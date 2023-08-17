@@ -11,8 +11,9 @@ import copy
 import pickle 
 import matplotlib.pyplot as plt
 import numpy as np
-import universalData as ud
+import data as ud
 import copy
+import os
 
 solarDataList = ud.solarDataList
 solarData = aim.data(solarDataList)
@@ -35,17 +36,17 @@ hydroData2 = aim.data(hydroList2)
 combList1 = ud.combList1
 combData1 = aim.data(combList1)
 combList2 = ud.combList2
-combData2 = aim.data(combList1)
+combData2 = aim.data(combList2)
 combList3 = ud.combList3
-combData3 = aim.data(combList1)
+combData3 = aim.data(combList3)
 combList4 = ud.combList4
-combData4 = aim.data(combList1)
+combData4 = aim.data(combList4)
 combList5 = ud.combList5
-combData5 = aim.data(combList1)
+combData5 = aim.data(combList5)
 combList6 = ud.combList6
-combData6 = aim.data(combList1)
+combData6 = aim.data(combList6)
 combList7 = ud.combList1
-combData7 = aim.data(combList1)
+combData7 = aim.data(combList7)
 '''
 The models that must be created:
 Simple Solar Output Prediction AI
@@ -175,4 +176,48 @@ def createFutureModel(name, dataList, dataPack, columns, modelPack, structure, c
     else:
         models[category]['simpModels'].update({name:Model})
         models[category]['simpData'].update({name:Data})
+
+def save_copy(modelDict, parentDir, name):
+    path = os.path.join(parentDir, name)
+    os.mkdir(path)
+    futurePath = os.path.join(path, 'futurePath')
+    os.mkdir(futurePath)
+    simpPath = os.path.join(path, 'simpPath')
+    os.mkdir(simpPath)
+    
+    for key in modelDict['futureData'].keys():
+        tmpPath = os.path.join(futurePath, key)
+        os.mkdir(tmpPath)
+        model = modelDict['futureModels'][key]
+        data = modelDict['futureData'][key]
         
+        fileHandle = open(tmpPath, 'wb')
+        pickle.dump(model, fileHandle)
+ 
+        fileHandle = open(tmpPath, 'wb')
+        pickle.dump(data, fileHandle)
+        
+    for key in modelDict['simpData'].keys():
+        tmpPath = os.path.join(simpPath, key)
+        os.mkdir(tmpPath)
+        model = modelDict['futureModels'][key]
+        data = modelDict['futureData'][key]
+        
+        fileHandle = open(tmpPath, 'wb')
+        pickle.dump(model, fileHandle)
+ 
+        fileHandle = open(tmpPath, 'wb')
+        pickle.dump(data, fileHandle)
+           
+def add_new(parentDir, name, model, data):
+    tmpPath = os.path.join(parentDir, name)
+    os.mkdir(tmpPath)
+    
+    fileHandle = open(tmpPath, 'wb')
+    pickle.dump(model, fileHandle)
+ 
+    fileHandle = open(tmpPath, 'wb')
+    pickle.dump(data, fileHandle)
+
+def scan_update()
+#Scan current stored models and such and only add the new ones    
