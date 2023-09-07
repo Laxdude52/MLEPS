@@ -7,6 +7,18 @@ Created on Tue Jul 18 17:02:41 2023
 
 import pandas as pd
 
+dataLists = dict()
+
+def createList(files, storedName):
+    #files is a list
+    tmpDataList = dict()
+    for i in range(len(files)):
+        tmpData = pd.read_csv(files[i])
+        tmpDataList.update({i:tmpData})
+    dataLists.update({storedName: tmpDataList})
+    
+    
+'''
 #Save all Datasets hee
 r2016 = pd.read_csv("BS_2016.csv")
 r2017 = pd.read_csv("BS_2017.csv")
@@ -32,4 +44,4 @@ combList4 = 'NA'
 combList5 = 'NA'
 combList6 = 'NA'
 combList7 = 'NA'
-
+'''
