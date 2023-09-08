@@ -31,7 +31,12 @@ def prepModel(modelType, numModels, modelsStoredName):
         tmpModelDict.update({"simpData": copy.deepcopy(simpData)})
         tmpModelDict.update({"futureData": copy.deepcopy(futureData)})
         tmpKey = modelsStoredName+str(i)
-        models[modelType].update({tmpKey:copy.deepcopy(tmpModelDict)})
+        try:
+            models[modelType].update({tmpKey:copy.deepcopy(tmpModelDict)})
+        except:
+            models.update({modelType:dict()})
+            models[modelType].update({tmpKey:copy.deepcopy(tmpModelDict)})
+
 
 '''
 The models that must be created:
@@ -44,15 +49,20 @@ Quick Prediction scenario solar model
 '''
 
 #Create the simple output AI
-def createSimpModel(name, dataList, columns, modelPack, structure, category):
+def createSimpModel(name, dataList, columns, modelPack, structure, category, sectionName):
     #Create Data
+    if type(dataList) == dict:
+        dataList = list(dataList.values())
+    print("Line 56")
     simpData = aim.data(dataList)
+    #return simpData
     simpData.baseFilter(columns['all'], 'na', 0, 'rmv')
+    #return a
     simpData.split(.3, .1, columns['y'], columns['X'], shuffle=True)
 
     #Create Model
     if structure == 'regular':
-        simpModel = aim.model(modelPack['model'], modelPack['name'], modelPack['param_dist'], simpData)
+        simpModel = aim.model(modelPack['model'], modelPack['modelType'], modelPack['param_dist'], simpData)
         simpModel.train(1, 'NA')
     elif structure == 'ensemble':
         simpModel = aim.ensemble(modelPack['modelList'], modelPack['newModelDataframe'], simpData)
@@ -64,17 +74,19 @@ def createSimpModel(name, dataList, columns, modelPack, structure, category):
         simpModel.createData(prepTrain=True)
         simpModel.trainSecond(modelPack['secondLayerModel'])
         
-    if category.type==list:
+    if type(category)==list:
         models[category[0]][category[1]]['simpModels'].update({name:simpModel})
         models[category[0]][category[1]]['simpData'].update({name:simpData})
     else:
-        models[category]['simpModels'].update({name:simpModel})
-        models[category]['simpData'].update({name:simpData})
+        models[category][sectionName]['simpModels'].update({name:simpModel})
+        models[category][sectionName]['simpData'].update({name:simpData})
 
 #Create the Future kW model    
-def createFutureModel(name, dataList, dataPack, columns, modelPack, structure, category):
+def createFutureModel(name, dataList, dataPack, columns, modelPack, structure, category, sectionName):
     #name, numPastSteps, numFutureSteps, aggTime, timeCols, lagTime, notLagTime, modelPack, structure
     #Create Data
+    if type(dataList) == dict:
+        dataList = list(dataList.values())
     Data = aim.data(dataList)
     Data.baseFilter(columns['all'], 'na', 0, 'mean')
     multiTime = False
@@ -103,16 +115,25 @@ def createFutureModel(name, dataList, dataPack, columns, modelPack, structure, c
         models[category[0]][category[1]]['futureModels'].update({name:Model})
         models[category[0]][category[1]]['futureData'].update({name:Data})
     else:
-        models[category]['simpModels'].update({name:Model})
-        models[category]['simpData'].update({name:Data})
+        models[category][sectionName]['simpModels'].update({name:Model})
+        models[category][sectionName]['simpData'].update({name:Data})
 
 def save_copy(modelDict, parentDir, name):
     path = os.path.join(parentDir, name)
-    os.mkdirs(path)
+    try:
+        os.mkdir(path)
+    except:
+        print("No path made")
     futurePath = os.path.join(path, 'futurePath')
-    os.mkdir(futurePath)
+    try:
+        os.mkdir(futurePath)
+    except:
+        print("No path made")
     simpPath = os.path.join(path, 'simpPath')
-    os.mkdir(simpPath)
+    try:
+        os.mkdir(simpPath)
+    except:
+        print("No path made")
     
     for key in modelDict['futureData'].keys():
         tmpPath = os.path.join(futurePath, key)
@@ -124,18 +145,23 @@ def save_copy(modelDict, parentDir, name):
         pickle.dump(model, fileHandle)
  
         fileHandle = open(tmpPath, 'wb')
-        pickle.dump(data, fileHandle)
+        pickle.dump(data, fileHandle) 
         
     for key in modelDict['simpData'].keys():
         tmpPath = os.path.join(simpPath, key)
-        os.mkdir(tmpPath)
-        model = modelDict['futureModels'][key]
-        data = modelDict['futureData'][key]
-        
-        fileHandle = open(tmpPath, 'wb')
+        try:
+            os.mkdir(tmpPath)
+        except:
+            print("No path made")
+        model = modelDict['simpModels'][key]
+        data = modelDict['simpData'][key]
+
+        tmpPathM = os.path.join(tmpPath, 'Model.pkl')
+        fileHandle = open(tmpPathM, 'wb')
         pickle.dump(model, fileHandle)
  
-        fileHandle = open(tmpPath, 'wb')
+        tmpPathD = os.path.join(tmpPath, 'Data.pkl')
+        fileHandle = open(tmpPathD, 'wb')
         pickle.dump(data, fileHandle)
            
 def add_new(parentDir, name, model, data):
@@ -143,10 +169,12 @@ def add_new(parentDir, name, model, data):
     tmpPath = os.path.join(parentDir, name)
     os.mkdir(tmpPath)
     
-    fileHandle = open(tmpPath, 'wb')
+    tmpPathM = os.path.join(tmpPath, 'Model.pkl')
+    fileHandle = open(tmpPathM, 'wb')
     pickle.dump(model, fileHandle)
  
-    fileHandle = open(tmpPath, 'wb')
+    tmpPathD = os.path.join(tmpPath, 'Data.pkl')
+    fileHandle = open(tmpPathD, 'wb')
     pickle.dump(data, fileHandle)
 
 #def scan_update()

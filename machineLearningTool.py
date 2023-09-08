@@ -58,7 +58,7 @@ class data:
                 try:
                     test = pd.DataFrame(df)
                 except:
-                    warnings.warn(("Dataframe: " + df + "can NOT be conerted to a datraframe"))
+                    warnings.warn(("Dataframe: " + str(df) + "can NOT be conerted to a datraframe"))
                     self.valid = False
             if not self.valid:
                 raise Exception("Invalid Input")
@@ -114,6 +114,7 @@ class data:
 
     def baseFilter(self, columnNames, aboveVal, belowVal, naDecision):
         print("Base FIlter")
+        print(columnNames)
         self.valid= True
         try:
             self.filtered = self.rawDf[columnNames]
@@ -122,12 +123,12 @@ class data:
                 try:
                     self.rawDf[column]
                 except KeyError as e:
-                    warnings.warn(e)
+                    warnings.warn(str(e))
                     warnings.warn(("column: " + column + " does not exist"))
                     self.valid = False
         if not self.valid:
             raise Exception("Invalid Input")
-        
+        #return self.filtered
         for (columnName, columnData) in self.filtered.iteritems():
             print(columnName)
             if(isinstance(columnData.values[0], numbers.Number)):
@@ -135,15 +136,10 @@ class data:
                     print("Start Below")
                     self.filtered.loc[self.filtered[columnName] < belowVal, columnName] = belowVal
                     print("Below done")
-                if(aboveVal != 'na'):
+                if(aboveVal != 'na'): 
                     print("Start Above")
                     self.filtered.loc[self.filtered[columnName] > aboveVal, columnName] = aboveVal
                     print("Above done")
-                if(naDecision == 'rmv'):
-                    print("Start Remove Filter")
-                    tmp = self.filtered[columnName].dropna()
-                    self.filtered = self.filtered.assign(columnName = tmp)
-                    print("Remove done")
                 if(naDecision == 'mean'):
                     print("Start Mean Filter")
                     self.filtered[columnName].fillna(self.filtered[columnName].mean(), inplace=True)
@@ -159,6 +155,11 @@ class data:
                 print(columnName)
                 print("This column is not a int OR it is not a numpy int/float, make sure you apply any preprocessing to it manually")
 
+        if(naDecision == 'rmv'):
+            print("Start Remove Filter")
+            self.filtered.dropna(inplace=True)
+            print("Remove done")        
+            
     def summary(self):
         print(self.filtered.describe().transpose())
         print(self.filtered.describe())
@@ -190,12 +191,7 @@ class data:
                 tmpcol = f'{col}_lag{i}'
                 self.input_cols = np.append(self.input_cols, tmpcol)
     
-    def split(self, testSize, validSize, target_variable, input_cols, shuffle=False):
-        if shuffle:
-            self.train_df = self.train_df.sample(frac = 1)
-            self.test_df = self.train_df.sample(frac = 1)
-            self.valid_df = self.train_df.sample(frac = 1)
-            
+    def split(self, testSize, validSize, target_variable, input_cols, shuffle=False):      
         print("Split")
         # Step 3: Split the data
         test_size = int(len(self.filtered) * testSize)
@@ -208,6 +204,11 @@ class data:
         self.valid_df.reset_index(inplace=True)
         self.test_df = self.filtered.iloc[-test_size:].copy()
         self.test_df.reset_index(inplace=True)
+        
+        if shuffle:
+            self.train_df = self.train_df.sample(frac = 1)
+            self.test_df = self.train_df.sample(frac = 1)
+            self.valid_df = self.train_df.sample(frac = 1)
         
         self.X_train = self.train_df[input_cols]
         self.y_train = self.train_df[target_variable]

@@ -17,6 +17,7 @@ def createList(files, storedName):
         tmpDataList.update({i:tmpData})
     dataLists.update({storedName: tmpDataList})
     
+testFiles = ["BS_2016.csv", "BS_2017.csv", "BS_2018.csv"]
     
 '''
 #Save all Datasets hee
