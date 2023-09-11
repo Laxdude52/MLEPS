@@ -6,21 +6,47 @@ Created on Fri Sep  8 13:39:12 2023
 """
 
 import PySimpleGUI as sg
+import createModels as cm
+a = []
+defaultDirectory = r'C:\Users\every\Desktop\testMLEPS'
+
+
+def modelManageWindow():
+    print("Start Model Manage Window")
+    
+def loadDataWindow():
+    
 
 def dataManageWindow():
+    tmpData = cm.models
     print("Start Data Management Window")
     window.hide()
     
     left_column = [
         [sg.Button('Load Data', key='-Load Data-', size=(20,3))],
         [sg.Button('Create Data', key='-Create Data-', size=(20,3))],
-        ]
-    right_column = [
-        [sg.Text("Loaded Datasets")],
-        [sg.Listbox(['test1', 'test2', 'test3', 'test4', 'test5'], size=(20,7), key='-Dataframe')],
-        [sg.Button('Manage Selected Dataframe', key='-Manage Selected Data-', size=(20,2))],
+        [sg.Button('Back', key='Exit', size=(10,2))],
         ]
     
+    overall_types = ['all']
+    tmpTypeKeys = list(tmpData.keys())
+    for i in range(len(tmpTypeKeys)):
+        overall_types.append(tmpTypeKeys[i])
+    
+    specified_types = []
+    loaded_dsets = []
+    
+    right_column = [
+        [sg.Text("Loaded Datasets")],
+        [sg.Text("Overall Dataset Types")],
+        [sg.Listbox(overall_types, size=(20,4), key='-overall_type-', select_mode=sg.LISTBOX_SELECT_MODE_MULTIPLE, enable_events=True)],
+        [sg.Text("Specified Dataset Types")],
+        [sg.Listbox(specified_types, size=(20,4), key='-specified_type-', select_mode=sg.LISTBOX_SELECT_MODE_MULTIPLE, enable_events=True, disabled=True)],
+        [sg.Text("Specified Dataset Types")],
+        [sg.Listbox(loaded_dsets, size=(20,7), key='-datasets-', enable_events=True, disabled=True)],
+        [sg.Button('Manage Selected Dataframe', key='-Manage Selected Data-', size=(20,2))],
+        ]
+     
     dataManage_layout = [
         [
             sg.Column(left_column),
@@ -33,12 +59,57 @@ def dataManageWindow():
     
     while True:
         event_dataManage, values_dataManage = dataManage_window.read()
+        loaded_dsets = []
         
-        if event_dataManage == sg.WIN_CLOSED:
+        if (event_dataManage == sg.WIN_CLOSED) or (event_dataManage == 'Exit'):
             dataManage_window.close()
             window.un_hide()
             break
-        
+        elif event_dataManage == '-overall_type-':
+            specified_types = []
+            chosenTypes = list(values_dataManage['-overall_type-'])
+            for i in range(len(chosenTypes)):
+                if chosenTypes[i] == 'all':
+                    for key in tmpData.keys():
+                        for key1 in tmpData[key]:
+                            specified_types.append(key1)
+                    break
+                else:
+                    tmpKeys = list(tmpData[chosenTypes[i]].keys())
+                    for j in range(len(tmpKeys)):
+                        specified_types.append(tmpKeys[j])
+
+            dataManage_window.Element('-specified_type-').update(values=specified_types, disabled=False)
+        elif event_dataManage == '-specified_type-':
+            for i in range(len(chosenTypes)):
+                selectedKeys = list(values_dataManage['-specified_type-'])
+                #Add all functionality later
+                '''
+                if selectedKeys[i] == 'all':
+                    for j in range(len(specified_types)):
+                        tmpNameS = specified_types[j] + ' Simple Data'
+                        tmpNameF = specified_types[j] + ' Future Data'
+                        loaded_dsets.append(tmpNameS)
+                        loaded_dsets.append(tmpNameF)
+                        break
+                '''
+                for j in range(len(selectedKeys)):
+                    print(selectedKeys)
+                    tmpNameS = selectedKeys[j] + ' Simple Data'
+                    tmpNameF = selectedKeys[j] + ' Future Data'
+                    loaded_dsets.append(tmpNameS)
+                    loaded_dsets.append(tmpNameF)
+                    '''
+                    loaded_dsets.append(tmpData[chosenTypes[i]][selectedKeys[j]]['simpData'])
+                    loaded_dsets.append(tmpData[chosenTypes[i]][selectedKeys[j]]['futureData'])
+                    '''
+            
+            a = loaded_dsets
+            dataManage_window.Element('-datasets-').update(values=loaded_dsets, disabled=False)
+        elif event_dataManage == 'Load Data':
+            new_dataset = loadDataWindow()
+                
+            
 
 # Define the layout of the left column
 left_column = [
@@ -75,7 +146,7 @@ while True:
         dataManageWindow()
     elif event == '-Models-':
         print("Models")
-        #modelManageWindow()
+        modelManageWindow()
     elif event == '-EMS-':
         print("EMS")
         #EMSWindow()

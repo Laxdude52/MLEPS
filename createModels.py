@@ -36,7 +36,9 @@ def prepModel(modelType, numModels, modelsStoredName):
         except:
             models.update({modelType:dict()})
             models[modelType].update({tmpKey:copy.deepcopy(tmpModelDict)})
-
+prepModel('Solar', 3, 'Test')
+prepModel('Wind', 5, 'Alpha')
+prepModel('Combustion', 2, 'Beta')
 
 '''
 The models that must be created:
