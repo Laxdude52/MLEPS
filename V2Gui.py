@@ -12,12 +12,97 @@ import data as dd
 a = []
 defaultDirectory = r'C:\Users\every\Desktop\testMLEPS'
 
+def loadWindow(arg):
+    if arg[0] == 'packUpdate':
+        loadLayout = [[sg.Text("LOADING")]]
+        load_window = sg.Window("Loading", loadLayout)
+        while True:
+            evt, val = load_window.read()
+            modelManageWindow(arg[1])
+            break
 
-def modelManageWindow():
+def modelManageWindow(pack):
     print("Start Model Manage Window")
+    tmpData = cm.models
+    overall_types = ['all']
+    specified_types = []
+    loaded_models = []
     
-#Depreciated 
-   
+    tmpKeys = list(tmpData.keys())
+    for i in range(len(tmpKeys)):
+        overall_types.append(tmpKeys[i])
+        
+    if not pack == 'NA':
+        #WILL NOT WORK, force them to set data pack first and then set model pack
+        dataPack = pack[1]
+        modelPack = pack[2]
+    else:
+        dataPack = [sg.Button("Get Data", key='-get_data-', size=(10,2), disabled=True),
+                    sg.Text("Data Name Here")]
+            
+        modelPack = [[sg.Text("Model Pack Here")],
+                     [sg.Text("Will load when all left parameters chosen", size=(10,3))]]
+
+    left_column = [
+        [sg.Text("Create Model")],
+        [sg.Input(default_text='Model Type (Ex. Solar)', key='-model_type-', size=(20,1))],
+        [sg.Input(default_text='Model Stored Name (Ex. Solar 1)', key='-model_name-', size=(20,1))],
+        [sg.Listbox(["Simple Predictions", "Future Predictions"], key='-prediction_type-', enable_events=True, size=(20,2))],
+        [sg.Text("Data Preperation")],
+        dataPack,
+        [sg.Text("Model Preperation")],
+        [sg.Listbox(["Regular", "Ensemble", "Breakout"], disabled=True, enable_events=True, key='-model_structure-', size=(20,3))],
+        [sg.Button("Train (yay)", disabled=True, key='-train-', size=(20,3))],
+        [sg.Button("Save copy", disabled=True, key='-save_copy-'),
+         sg.Button("Save", disabled=True, key='-save')]
+        ]
+
+    right_column = [
+        [sg.Text("Loaded Models")],
+        [sg.Text("Overall Model Type")],
+        [sg.Listbox(overall_types, size=(20,4), key='-overall_type-', select_mode=sg.LISTBOX_SELECT_MODE_MULTIPLE, enable_events=True)],
+        [sg.Text("Specified Model Types")],
+        [sg.Listbox(specified_types, size=(20,4), key='-specified_type-', select_mode=sg.LISTBOX_SELECT_MODE_MULTIPLE, enable_events=True, disabled=True)],
+        [sg.Text("Specified Model Types")],
+        [sg.Listbox(loaded_models, size=(20,7), key='-models-', enable_events=True, disabled=True)],
+        [sg.Button('Manage Selected Model', key='-Manage Selected Model-', size=(20,2))],
+        ]
+    
+    modelManage_layout = [
+        [
+            sg.Column(left_column),
+            sg.VerticalSeparator(),
+            sg.Column(modelPack),
+            sg.VerticalSeparator(),
+            sg.Column(right_column),
+            ]
+        ]
+    
+    modelManage_window = sg.Window("Model Manage", modelManage_layout, size=(600,400))
+    
+    while True:
+        event_modelManage, values_modelManage = modelManage_window.read()
+        if (event_modelManage == sg.WIN_CLOSED):
+            modelManage_window.close()
+            window.un_hide()
+            break
+        elif event_modelManage == '-prediction_type-':
+            modelManage_window.Element('-model_structure-').update(disabled=False)
+        elif event_modelManage == '-model_structure-':
+            print("Model structure selected")
+            modelStructure = values_modelManage['-model_structure-']
+            if not modelStructure == 'Breakout':
+                modelPack = [
+                    [sg.Text(("You have chosen a: " + str(modelStructure) + " model"))],
+                    [sg.Text("Chose model: ")],
+                    [sg.Listbox(['XGB', 'SVM', 'GAM', 'DNN'])]         
+                    ]
+                pack = ['model', modelPack]
+            prepArg = ['packUpdate', pack]
+            loadWindow(prepArg)
+            modelManage_window.close()
+            break
+    
 def loadDataWindow(files):
     window.hide()
     loadData_layout = [
@@ -38,10 +123,14 @@ def loadDataWindow(files):
         elif event_loadData == '-New Dsets-':
            loadData_window.close()
            new_dataset = sg.popup_get_file('Multi-File select', multiple_files=True)
+           new_dataset = new_dataset.split(";")
            loadDataWindow(new_dataset)
         elif event_loadData == '-Save List-':
             name = values_loadData['-Stored Filename-']
-            dd.createList(files, name)
+            if not files == 'NA':
+                dd.createList(files, name)
+            loadData_window.close()
+            dataManageWindow()
         elif event_loadData == '-Stored Filename-':
             loadData_window.Element('-Save List-').update(disabled=False)
 
@@ -54,11 +143,12 @@ def dataManageWindow():
     left_column = [
         [sg.Text("Manage Datasets")],
         [sg.Button('Load Data', key='-Load Data-', size=(20,3))],
-        [sg.Button('Create Data', key='-Create Data-', size=(20,3))],
         [sg.Text("Loaded dataset lists:")],
         #Include the loaded dset lists on the left 
         [sg.Listbox(loaded_lists, size=(30,5), key='-selected lists-', enable_events=True)],
-        [sg.Button("Edit Selected List", key='-edit list-', size=(20,3))],
+        [sg.Button("View List", key='-view list-', size=(7,3)),
+        sg.Button("Edit List", key='-edit list-', size=(7,3)),
+        sg.Button("Delete List", key='-delete list-', size=(7,3))],
         [sg.Button('Back', key='Exit', size=(10,2))],
         ]
     
@@ -84,7 +174,7 @@ def dataManageWindow():
     dataManage_layout = [
         [
             sg.Column(left_column),
-            sg.VerticalSeparator(),
+            sg.VerticalSeparator(), 
             sg.Column(right_column),
             ]
         ]
@@ -140,13 +230,20 @@ def dataManageWindow():
             
             a = loaded_dsets
             dataManage_window.Element('-datasets-').update(values=loaded_dsets, disabled=False)
-        elif event_dataManage == '-Create Data-':
+        elif event_dataManage == '-Load Data-':
+            dataManage_window.close()
             #new_dataset = loadDataWindow()
             new_dataset = sg.popup_get_file('Multi-File select', multiple_files=True)
-            new_dataset = new_dataset.split(";")
-            loadDataWindow(new_dataset)
-            print(new_dataset) 
-
+            if type(new_dataset) == str:
+                new_dataset = new_dataset.split(";")
+                loadDataWindow(new_dataset)
+                print(new_dataset) 
+            else:
+                dataManageWindow()
+ 
+    
+#Code for first window below   
+ 
 # Define the layout of the left column
 left_column = [
     [sg.Button('Manage Data', key='-Data-', size=(20, 3))],
@@ -182,7 +279,7 @@ while True:
         dataManageWindow()
     elif event == '-Models-':
         print("Models")
-        modelManageWindow()
+        modelManageWindow('NA')
     elif event == '-EMS-':
         print("EMS")
         #EMSWindow()
