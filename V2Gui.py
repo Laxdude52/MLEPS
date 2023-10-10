@@ -7,6 +7,8 @@ Created on Fri Sep  8 13:39:12 2023
 
 import PySimpleGUI as sg
 import createModels as cm
+import data as dd
+
 a = []
 defaultDirectory = r'C:\Users\every\Desktop\testMLEPS'
 
@@ -14,17 +16,49 @@ defaultDirectory = r'C:\Users\every\Desktop\testMLEPS'
 def modelManageWindow():
     print("Start Model Manage Window")
     
-def loadDataWindow():
+#Depreciated 
+   
+def loadDataWindow(files):
+    window.hide()
+    loadData_layout = [
+        [sg.Text("Here are the files you selected:")],
+        [sg.Listbox(files, size=(40, 5), disabled=True)],
+        [sg.Input(default_text='Stored File Name', enable_events=True, key='-Stored Filename-', size=(30,3))],
+        [sg.Button("Save", key='-Save List-', size=(20,2), disabled=True)],
+        [sg.Button("Change Dataframes", key='-New Dsets-', size=(20,2))],
+        ]
     
+    loadData_window = sg.Window("Load Csv Files", loadData_layout)
+    
+    while True:
+        event_loadData, values_loadData = loadData_window.read()
+        if (event_loadData == sg.WIN_CLOSED):
+            loadData_window.close()
+            break
+        elif event_loadData == '-New Dsets-':
+           loadData_window.close()
+           new_dataset = sg.popup_get_file('Multi-File select', multiple_files=True)
+           loadDataWindow(new_dataset)
+        elif event_loadData == '-Save List-':
+            name = values_loadData['-Stored Filename-']
+            dd.createList(files, name)
+        elif event_loadData == '-Stored Filename-':
+            loadData_window.Element('-Save List-').update(disabled=False)
 
 def dataManageWindow():
+    loaded_lists = dd.dataLists
     tmpData = cm.models
     print("Start Data Management Window")
     window.hide()
     
     left_column = [
+        [sg.Text("Manage Datasets")],
         [sg.Button('Load Data', key='-Load Data-', size=(20,3))],
         [sg.Button('Create Data', key='-Create Data-', size=(20,3))],
+        [sg.Text("Loaded dataset lists:")],
+        #Include the loaded dset lists on the left 
+        [sg.Listbox(loaded_lists, size=(30,5), key='-selected lists-', enable_events=True)],
+        [sg.Button("Edit Selected List", key='-edit list-', size=(20,3))],
         [sg.Button('Back', key='Exit', size=(10,2))],
         ]
     
@@ -106,10 +140,12 @@ def dataManageWindow():
             
             a = loaded_dsets
             dataManage_window.Element('-datasets-').update(values=loaded_dsets, disabled=False)
-        elif event_dataManage == 'Load Data':
-            new_dataset = loadDataWindow()
-                
-            
+        elif event_dataManage == '-Create Data-':
+            #new_dataset = loadDataWindow()
+            new_dataset = sg.popup_get_file('Multi-File select', multiple_files=True)
+            new_dataset = new_dataset.split(";")
+            loadDataWindow(new_dataset)
+            print(new_dataset) 
 
 # Define the layout of the left column
 left_column = [
