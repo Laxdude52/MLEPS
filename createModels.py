@@ -51,14 +51,14 @@ Quick Prediction scenario solar model
 '''
 
 #Create the simple output AI
-def createSimpModel(name, dataList, columns, modelPack, structure, category, sectionName):
+def createSimpModel(name, dataList, dataPack, columns, modelPack, structure, category, sectionName):
     #Create Data
     if type(dataList) == dict:
         dataList = list(dataList.values())
     print("Line 56")
     simpData = aim.data(dataList)
     #return simpData
-    simpData.baseFilter(columns['all'], 'na', 0, 'rmv')
+    simpData.baseFilter(columns['all'], dataPack['aboveVal'], dataPack['belowVal'], dataPack['naDecision'])
     #return a
     simpData.split(.3, .1, columns['y'], columns['X'], shuffle=True)
 
@@ -86,11 +86,12 @@ def createSimpModel(name, dataList, columns, modelPack, structure, category, sec
 #Create the Future kW model    
 def createFutureModel(name, dataList, dataPack, columns, modelPack, structure, category, sectionName):
     #name, numPastSteps, numFutureSteps, aggTime, timeCols, lagTime, notLagTime, modelPack, structure
+    #Columns has all columns, x columns, and y columns
     #Create Data
     if type(dataList) == dict:
         dataList = list(dataList.values())
     Data = aim.data(dataList)
-    Data.baseFilter(columns['all'], 'na', 0, 'mean')
+    Data.baseFilter(columns['all'], dataPack['aboveVal'], dataPack['belowVal'], dataPack['naDecision'])
     multiTime = False
     if len(dataPack['timeCols']) > 1:
         multiTime = True

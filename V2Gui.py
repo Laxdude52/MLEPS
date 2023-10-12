@@ -19,7 +19,20 @@ def loadWindow(arg):
         while True:
             evt, val = load_window.read()
             modelManageWindow(arg[1])
+            load_window.close()
             break
+
+def getModelDataWindow():
+    #Get informatino for data pack, test with simp first
+    #Simp: aboveVal, belowVal, naDecision
+    dataList = dd.dataLists
+    
+    gmdwLayout = [
+        [sg.Input(default_text="Maximum Value", key='-maxVal-')],
+        [sg.Input(default_text="Minimum Value", key='-minVal-')],
+        [sg.Text("Na Value Decision: "),  
+        sg.Listbox(['Mean'], key='-naDecision')]
+        ]
 
 def modelManageWindow(pack):
     print("Start Model Manage Window")
@@ -33,16 +46,13 @@ def modelManageWindow(pack):
         overall_types.append(tmpKeys[i])
         
     if not pack == 'NA':
-        #WILL NOT WORK, force them to set data pack first and then set model pack
-        dataPack = pack[1]
-        modelPack = pack[2]
+        modelPack = pack
     else:
-        dataPack = [sg.Button("Get Data", key='-get_data-', size=(10,2), disabled=True),
-                    sg.Text("Data Name Here")]
-            
         modelPack = [[sg.Text("Model Pack Here")],
                      [sg.Text("Will load when all left parameters chosen", size=(10,3))]]
 
+    dataPack = [sg.Button("Get Data", key='-get_data-', size=(10,2), disabled=True)]
+    
     left_column = [
         [sg.Text("Create Model")],
         [sg.Input(default_text='Model Type (Ex. Solar)', key='-model_type-', size=(20,1))],
@@ -88,6 +98,8 @@ def modelManageWindow(pack):
             break
         elif event_modelManage == '-prediction_type-':
             modelManage_window.Element('-model_structure-').update(disabled=False)
+        elif event_modelManage == '-get_data-':
+            
         elif event_modelManage == '-model_structure-':
             print("Model structure selected")
             modelStructure = values_modelManage['-model_structure-']
