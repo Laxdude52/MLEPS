@@ -12,14 +12,14 @@ import data as dd
 a = []
 defaultDirectory = r'C:\Users\every\Desktop\testMLEPS'
 
-def loadWindow(arg):
-    if arg[0] == 'packUpdate':
-        loadLayout = [[sg.Text("LOADING")]]
-        load_window = sg.Window("Loading", loadLayout)
-        while True:
-            evt, val = load_window.read()
-            modelManageWindow(arg[1])
+def loadWindow(pack):
+    loadLayout = [[sg.Text("LOADING, close this window")]]
+    load_window = sg.Window("Loading", loadLayout)
+    while True:
+        evt, val = load_window.read()
+        if True:
             load_window.close()
+            modelManageWindow(pack, packLoaded=True)
             break
 
 def getModelDataWindow():
@@ -28,18 +28,38 @@ def getModelDataWindow():
     dataList = dd.dataLists
     
     gmdwLayout = [
+        [sg.Text("Data Lists:"), sg.Listbox(list(dataList.keys()), key='-dataList-', size=(40,3))],
         [sg.Input(default_text="Maximum Value", key='-maxVal-')],
         [sg.Input(default_text="Minimum Value", key='-minVal-')],
         [sg.Text("Na Value Decision: "),  
-        sg.Listbox(['Mean'], key='-naDecision')]
+        sg.Listbox(['Mean'], key='-naDecision-', size=(30,1))],
+        [sg.Button("Save", key='-return_dataPack-')]
         ]
+    
+    modelData_Window = sg.Window("Get data", gmdwLayout)
+    
+    while True: 
+        events_modelData, values_modelData = modelData_Window.read()
+        if events_modelData == sg.WIN_CLOSED:
+            modelData_Window.close()
+            break
+        elif events_modelData == '-return_dataPack-':
+            dataPack = dict()
+            dataPack.update({'dataList': str(values_modelData['-dataList-'])})
+            print("SELECTED DATA LIST: " + dataPack['dataList'])
+            dataPack.update({'aboveVal':values_modelData['-maxVal-']})
+            dataPack.update({'belowVal':values_modelData['-minVal-']})
+            dataPack.update({'naDecision':values_modelData['-naDecision-']})
+            modelData_Window.close()
+            return dataPack
 
-def modelManageWindow(pack):
+def modelManageWindow(pack, packLoaded=False):
     print("Start Model Manage Window")
     tmpData = cm.models
     overall_types = ['all']
     specified_types = []
     loaded_models = []
+    global dataPackParameters
     
     tmpKeys = list(tmpData.keys())
     for i in range(len(tmpKeys)):
@@ -53,41 +73,76 @@ def modelManageWindow(pack):
 
     dataPack = [sg.Button("Get Data", key='-get_data-', size=(10,2), disabled=True)]
     
-    left_column = [
-        [sg.Text("Create Model")],
-        [sg.Input(default_text='Model Type (Ex. Solar)', key='-model_type-', size=(20,1))],
-        [sg.Input(default_text='Model Stored Name (Ex. Solar 1)', key='-model_name-', size=(20,1))],
-        [sg.Listbox(["Simple Predictions", "Future Predictions"], key='-prediction_type-', enable_events=True, size=(20,2))],
-        [sg.Text("Data Preperation")],
-        dataPack,
-        [sg.Text("Model Preperation")],
-        [sg.Listbox(["Regular", "Ensemble", "Breakout"], disabled=True, enable_events=True, key='-model_structure-', size=(20,3))],
-        [sg.Button("Train (yay)", disabled=True, key='-train-', size=(20,3))],
-        [sg.Button("Save copy", disabled=True, key='-save_copy-'),
-         sg.Button("Save", disabled=True, key='-save')]
-        ]
-
-    right_column = [
-        [sg.Text("Loaded Models")],
-        [sg.Text("Overall Model Type")],
-        [sg.Listbox(overall_types, size=(20,4), key='-overall_type-', select_mode=sg.LISTBOX_SELECT_MODE_MULTIPLE, enable_events=True)],
-        [sg.Text("Specified Model Types")],
-        [sg.Listbox(specified_types, size=(20,4), key='-specified_type-', select_mode=sg.LISTBOX_SELECT_MODE_MULTIPLE, enable_events=True, disabled=True)],
-        [sg.Text("Specified Model Types")],
-        [sg.Listbox(loaded_models, size=(20,7), key='-models-', enable_events=True, disabled=True)],
-        [sg.Button('Manage Selected Model', key='-Manage Selected Model-', size=(20,2))],
-        ]
-    
-    modelManage_layout = [
-        [
-            sg.Column(left_column),
-            sg.VerticalSeparator(),
-            sg.Column(modelPack),
-            sg.VerticalSeparator(),
-            sg.Column(right_column),
+    if not packLoaded:
+        left_column = [
+            [sg.Text("Create Model")],
+            [sg.Input(default_text='Model Type (Ex. Solar)', key='-model_type-', size=(20,1))],
+            [sg.Input(default_text='Model Stored Name (Ex. Solar 1)', key='-model_name-', size=(20,1))],
+            [sg.Listbox(["Simple Predictions", "Future Predictions"], key='-prediction_type-', enable_events=True, size=(20,2))],
+            [sg.Text("Data Preperation")],
+            dataPack,
+            [sg.Text("Model Preperation")],
+            [sg.Listbox(["Regular", "Ensemble", "Breakout"], disabled=True, enable_events=True, key='-model_structure-', size=(20,3))],
+            [sg.Button("Train (yay)", disabled=True, key='-train-', size=(20,3))],
+            [sg.Button("Save copy", disabled=True, key='-save_copy-'),
+             sg.Button("Save", disabled=True, key='-save')]
             ]
-        ]
     
+        right_column = [
+            [sg.Text("Loaded Models")],
+            [sg.Text("Overall Model Type")],
+            [sg.Listbox(overall_types, size=(20,4), key='-overall_type-', select_mode=sg.LISTBOX_SELECT_MODE_MULTIPLE, enable_events=True)],
+            [sg.Text("Specified Model Types")],
+            [sg.Listbox(specified_types, size=(20,4), key='-specified_type-', select_mode=sg.LISTBOX_SELECT_MODE_MULTIPLE, enable_events=True, disabled=True)],
+            [sg.Text("Specified Model Types")],
+            [sg.Listbox(loaded_models, size=(20,7), key='-models-', enable_events=True, disabled=True)],
+            [sg.Button('Manage Selected Model', key='-Manage Selected Model-', size=(20,2))],
+            ]
+        
+        modelManage_layout = [
+            [
+                sg.Column(left_column),
+                sg.VerticalSeparator(),
+                sg.Column(modelPack),
+                sg.VerticalSeparator(),
+                sg.Column(right_column),
+                ]
+            ]
+    else:
+        left_column = [
+            [sg.Text("Create Model")],
+            [sg.Text(dataPackParameters['modelType'], size=(20,1))],
+            [sg.Text(dataPackParameters['modelName'], size=(20,1))],
+            [sg.Text(dataPackParameters['predictionType'], size=(20,2))],
+            [sg.Text("Data Preperation")],
+            dataPack,
+            [sg.Text("Model Preperation")],
+            [sg.Text(dataPackParameters['modelStructure'], size=(20,3))],
+            [sg.Button("Train (yay)", key='-train-', size=(20,3))],
+            [sg.Button("Save copy", disabled=True, key='-save_copy-'),
+             sg.Button("Save", disabled=True, key='-save')]
+            ]
+    
+        right_column = [
+            [sg.Text("Loaded Models")],
+            [sg.Text("Overall Model Type")],
+            [sg.Listbox(overall_types, size=(20,4), key='-overall_type-', select_mode=sg.LISTBOX_SELECT_MODE_MULTIPLE, enable_events=True)],
+            [sg.Text("Specified Model Types")],
+            [sg.Listbox(specified_types, size=(20,4), key='-specified_type-', select_mode=sg.LISTBOX_SELECT_MODE_MULTIPLE, enable_events=True, disabled=True)],
+            [sg.Text("Specified Model Types")],
+            [sg.Listbox(loaded_models, size=(20,7), key='-models-', enable_events=True, disabled=True)],
+            [sg.Button('Manage Selected Model', key='-Manage Selected Model-', size=(20,2))],
+            ]
+        
+        modelManage_layout = [
+            [
+                sg.Column(left_column),
+                sg.VerticalSeparator(),
+                sg.Column(modelPack),
+                sg.VerticalSeparator(),
+                sg.Column(right_column),
+                ]
+            ]
     modelManage_window = sg.Window("Model Manage", modelManage_layout, size=(600,400))
     
     while True:
@@ -97,23 +152,37 @@ def modelManageWindow(pack):
             window.un_hide()
             break
         elif event_modelManage == '-prediction_type-':
-            modelManage_window.Element('-model_structure-').update(disabled=False)
+            modelManage_window.Element('-get_data-').update(disabled=False)
         elif event_modelManage == '-get_data-':
-            
+            modelManage_window.Element('-model_structure-').update(disabled=False)
+            dataPackParameters = getModelDataWindow()
         elif event_modelManage == '-model_structure-':
             print("Model structure selected")
             modelStructure = values_modelManage['-model_structure-']
+            modelType = values_modelManage['-model_type-']
+            modelName = values_modelManage['-model_name-']
+            predictionType = values_modelManage['-prediction_type-']
+            modelStructure = values_modelManage['-model_structure-']
+            dataPackParameters.update({'modelType': modelType})
+            dataPackParameters.update({'modelName': modelName})  
+            dataPackParameters.update({'predictionType': predictionType})    
+            dataPackParameters.update({'modelStructure': modelStructure})    
             if not modelStructure == 'Breakout':
                 modelPack = [
-                    [sg.Text(("You have chosen a: " + str(modelStructure) + " model"))],
+                    [sg.Text(("You have chosen a: \n" + str(modelStructure) + " model"))],
                     [sg.Text("Chose model: ")],
-                    [sg.Listbox(['XGB', 'SVM', 'GAM', 'DNN'])]         
+                    [sg.Listbox(['XGB', 'SVM', 'GAM', 'DNN'], size=(20,3))]  ,
+                    [sg.Text("Data Parameters Chosen:")],
+                    [sg.Text("Data List: " + dataPackParameters['dataList'])],
+                    [sg.Text("Max Val: " + dataPackParameters['aboveVal'])],
+                    [sg.Text("Min Val: " + dataPackParameters['belowVal'])],
+                    [sg.Text("na Decision: " + str(dataPackParameters['naDecision']))]
                     ]
-                pack = ['model', modelPack]
-            prepArg = ['packUpdate', pack]
-            loadWindow(prepArg)
+            loadWindow(modelPack)
             modelManage_window.close()
             break
+        elif event_modelManage == '-train-':
+            print("Training")
     
 def loadDataWindow(files):
     window.hide()
