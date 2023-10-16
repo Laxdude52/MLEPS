@@ -26,9 +26,13 @@ def getModelDataWindow():
     #Get informatino for data pack, test with simp first
     #Simp: aboveVal, belowVal, naDecision
     dataList = dd.dataLists
+    selectColumns = ['all']
+    chosenColumns = ['na']
     
     gmdwLayout = [
-        [sg.Text("Data Lists:"), sg.Listbox(list(dataList.keys()), key='-dataList-', size=(40,3))],
+        [sg.Text("Data Lists:"), sg.Listbox(list(dataList.keys()), key='-dataList-', enable_events=True, size=(40,3))],
+        [sg.Listbox(selectColumns, key='-columnChoice-', select_mode=sg.LISTBOX_SELECT_MODE_MULTIPLE, size=(20,3), enable_events=True)],
+        [sg.Listbox(chosenColumns, key='-yChoice-', size=(20,3), disabled=True)],
         [sg.Input(default_text="Maximum Value", key='-maxVal-')],
         [sg.Input(default_text="Minimum Value", key='-minVal-')],
         [sg.Text("Na Value Decision: "),  
@@ -52,6 +56,13 @@ def getModelDataWindow():
             dataPack.update({'naDecision':values_modelData['-naDecision-']})
             modelData_Window.close()
             return dataPack
+        elif events_modelData == '-dataList-':
+            selectColumns = list(values_modelData['-dataList-'][0])
+            selectColumns.append('all')
+            modelData_Window.Element('-dataList-').update(values=selectColumns)
+        elif events_modelData == '-columnChoice-':
+            chosenColumns = values_modelData['-columnChoice-']
+            modelData_Window.Element('-yChoice-').update(values = chosenColumns, disabled=False)
 
 def modelManageWindow(pack, packLoaded=False):
     print("Start Model Manage Window")
@@ -183,6 +194,9 @@ def modelManageWindow(pack, packLoaded=False):
             break
         elif event_modelManage == '-train-':
             print("Training")
+            cm.prepModel(dataPackParameters['modelType'], 1, dataPackParameters['modelName'])
+            #COLUMNSSSS
+            cm.createSimpModel(dataPackParameters['modelName'], dataPackParameters['dataList'], dataPackParameters, )
     
 def loadDataWindow(files):
     window.hide()
