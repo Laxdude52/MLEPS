@@ -8,6 +8,7 @@ Created on Fri Sep  8 13:39:12 2023
 import PySimpleGUI as sg
 import createModels as cm
 import data as dd
+import copy  
 
 a = []
 defaultDirectory = r'C:\Users\every\Desktop\testMLEPS'
@@ -49,6 +50,13 @@ def getModelDataWindow():
             break
         elif events_modelData == '-return_dataPack-':
             dataPack = dict()
+            global columns
+            columns = dict()
+            columns.update({"all": copy.deepcopy(values_modelData['-columnChoice-'])})
+            XCols = values_modelData['-columnChoice-']
+            XCols.remove(str(values_modelData['-yChoice-'][0]))
+            columns.update({"X":XCols})
+            columns.update({"y":str(values_modelData['-yChoice-'][0])})
             dataPack.update({'dataList': str(values_modelData['-dataList-'])})
             print("SELECTED DATA LIST: " + dataPack['dataList'])
             dataPack.update({'aboveVal':values_modelData['-maxVal-']})
@@ -57,9 +65,11 @@ def getModelDataWindow():
             modelData_Window.close()
             return dataPack
         elif events_modelData == '-dataList-':
-            selectColumns = list(values_modelData['-dataList-'][0])
+            selectColumns = dataList[str(values_modelData['-dataList-'][0])][0]
+            selectColumns = list(selectColumns)
+            print(selectColumns)
             selectColumns.append('all')
-            modelData_Window.Element('-dataList-').update(values=selectColumns)
+            modelData_Window.Element('-columnChoice-').update(values=selectColumns)
         elif events_modelData == '-columnChoice-':
             chosenColumns = values_modelData['-columnChoice-']
             modelData_Window.Element('-yChoice-').update(values = chosenColumns, disabled=False)

@@ -12,7 +12,6 @@ import pickle
 import matplotlib.pyplot as plt
 import numpy as np
 import data as ud
-import copy
 import os
 
 #Create dictonaries
