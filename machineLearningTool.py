@@ -64,7 +64,7 @@ class data:
                 raise Exception("Invalid Input")
                     
             self.rawDf = pd.concat(self.dfList) 
-    def aggrigate(self, timeframe, exclusion, multiExclusion): 
+    def aggrigate(self, timeframe, retain, multiTimeRetain): 
         #columns: columns to keep
         #Timeframe: new timeframe 
         
@@ -85,31 +85,31 @@ class data:
             warnings.warn("CAN NOT CONVERT TO DATETIME")
             raise Exception("InalidColumn")
         
-        if multiExclusion:
-            for i in range(len(exclusion)): 
-                if(exclusion[i] == 'year'):
-                    self.filtered[exclusion[i]] = self.filtered.index.year
-                elif(exclusion[i] == 'month'):
-                    self.filtered[exclusion[i]] = self.filtered.index.month
-                elif(exclusion[i] == 'day'):
-                    self.filtered[exclusion[i]] = self.filtered.index.day
-                elif(exclusion[i] == 'hour'):
-                    self.filtered[exclusion[i]] = self.filtered.index.hour
-                elif(exclusion[i] == 'minute'):
-                    self.filtered[exclusion[i]] = self.filtered.index.minute
+        if multiTimeRetain:
+            for i in range(len(retain)): 
+                if(retain[i] == 'year'):
+                    self.filtered[retain[i]] = self.filtered.index.year
+                elif(retain[i] == 'month'):
+                    self.filtered[retain[i]] = self.filtered.index.month
+                elif(retain[i] == 'day'):
+                    self.filtered[retain[i]] = self.filtered.index.day
+                elif(retain[i] == 'hour'):
+                    self.filtered[retain[i]] = self.filtered.index.hour
+                elif(retain[i] == 'minute'):
+                    self.filtered[retain[i]] = self.filtered.index.minute
                 else:
                     warnings.warn("No time column kept")
         else:
-            if(exclusion == 'year'):
-                self.filtered[exclusion] = self.filtered.index.year
-            elif(exclusion == 'month'):
-                self.filtered[exclusion] = self.filtered.index.month
-            elif(exclusion == 'day'):
-                self.filtered[exclusion] = self.filtered.index.day
-            elif(exclusion == 'hour'):
-                self.filtered[exclusion] = self.filtered.index.hour
-            elif(exclusion == 'minute'):
-                self.filtered[exclusion] = self.filtered.index.minute
+            if(retain == 'year'):
+                self.filtered[retain] = self.filtered.index.year
+            elif(retain == 'month'):
+                self.filtered[retain] = self.filtered.index.month
+            elif(retain == 'day'):
+                self.filtered[retain] = self.filtered.index.day
+            elif(retain == 'hour'):
+                self.filtered[retain] = self.filtered.index.hour
+            elif(retain == 'minute'):
+                self.filtered[retain] = self.filtered.index.minute
 
 
     def baseFilter(self, columnNames, aboveVal, belowVal, naDecision):
