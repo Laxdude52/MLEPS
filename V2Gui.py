@@ -32,8 +32,8 @@ def getModelDataWindow():
     
     gmdwLayout = [
         [sg.Text("Data Lists:"), sg.Listbox(list(dataList.keys()), key='-dataList-', enable_events=True, size=(40,3))],
-        [sg.Listbox(selectColumns, key='-columnChoice-', select_mode=sg.LISTBOX_SELECT_MODE_MULTIPLE, size=(20,3), enable_events=True)],
-        [sg.Listbox(chosenColumns, key='-yChoice-', size=(20,3), disabled=True)],
+        [sg.Text("Columns to include: "), sg.Listbox(selectColumns, key='-columnChoice-', select_mode=sg.LISTBOX_SELECT_MODE_MULTIPLE, size=(20,3), enable_events=True)],
+        [sg.Text("Target Variable: "), sg.Listbox(chosenColumns, key='-yChoice-', size=(20,3), disabled=True)],
         [sg.Input(default_text="Maximum Value", key='-maxVal-')],
         [sg.Input(default_text="Minimum Value", key='-minVal-')],
         [sg.Text("Na Value Decision: "),  
@@ -63,7 +63,7 @@ def getModelDataWindow():
             dataPack.update({'belowVal':values_modelData['-minVal-']})
             dataPack.update({'naDecision':values_modelData['-naDecision-']})
             modelData_Window.close()
-            return dataPack
+            return dataPack, columns
         elif events_modelData == '-dataList-':
             selectColumns = dataList[str(values_modelData['-dataList-'][0])][0]
             selectColumns = list(selectColumns)
@@ -176,7 +176,7 @@ def modelManageWindow(pack, packLoaded=False):
             modelManage_window.Element('-get_data-').update(disabled=False)
         elif event_modelManage == '-get_data-':
             modelManage_window.Element('-model_structure-').update(disabled=False)
-            dataPackParameters = getModelDataWindow()
+            dataPackParameters, columns = getModelDataWindow()
         elif event_modelManage == '-model_structure-':
             print("Model structure selected")
             modelStructure = values_modelManage['-model_structure-']
@@ -192,8 +192,10 @@ def modelManageWindow(pack, packLoaded=False):
                 modelPack = [
                     [sg.Text(("You have chosen a: \n" + str(modelStructure) + " model"))],
                     [sg.Text("Chose model: ")],
-                    [sg.Listbox(['XGB', 'SVM', 'GAM', 'DNN'], size=(20,3))]  ,
+                    [sg.Listbox(['XGB', 'SVM', 'GAM', 'DNN'], key='-chosenModel-', enable_events=True, size=(20,3))],
                     [sg.Text("Data Parameters Chosen:")],
+                    [sg.Text("Columns: " + str(columns['all']))],
+                    [sg.Text("Target Variable: " + str(columns['y']))],
                     [sg.Text("Data List: " + dataPackParameters['dataList'])],
                     [sg.Text("Max Val: " + dataPackParameters['aboveVal'])],
                     [sg.Text("Min Val: " + dataPackParameters['belowVal'])],
@@ -202,11 +204,21 @@ def modelManageWindow(pack, packLoaded=False):
             loadWindow(modelPack)
             modelManage_window.close()
             break
+        elif event_modelManage == '-chosenModel':
+            fullModelPack = dict()
+            if values_modelManage['-chosenModel-'] == 'DNN':
+                fullModelPack.update({'modelType':'DNN'})
+                modelPack = [
+                    [sg.Text(("You have chosen a: \n" + str(modelStructure) + " DNN model"))],
+                    [sg.Listbox(['XGB', 'SVM', 'GAM', 'DNN'], key='-chosenModel-', enable_events=True, size=(20,3))],
+                    
+                    ]
+                
         elif event_modelManage == '-train-':
             print("Training")
             cm.prepModel(dataPackParameters['modelType'], 1, dataPackParameters['modelName'])
-            #COLUMNSSSS
-            cm.createSimpModel(dataPackParameters['modelName'], dataPackParameters['dataList'], dataPackParameters, )
+            cm.createSimpModel(dataPackParameters['modelName'], dataPackParameters['dataList'], dataPackParameters, 
+                               columns, )
     
 def loadDataWindow(files):
     window.hide()
