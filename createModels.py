@@ -14,6 +14,23 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import warnings
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers
+
+
+def createDefaultDNN(goal, modelType, group):
+    normalizer = tf.keras.layers.Normalization(axis=-1)
+    data = ud.dataModels[goal][modelType][group]['initData']
+    normalizer.adapt(data.X_train)
+    dnn_model = keras.Sequential([
+        normalizer,
+        layers.Dense(32, activation='relu'),
+        layers.Dense(16, activation='sigmoid'),
+        layers.Dense(1)
+    ])
+    dnn_model.compile(loss='mean_absolute_error', optimizer=tf.keras.optimizers.Adam(.001))
+    return dnn_model
 
 def createData(goal, modelType, group):
     parameters = ud.dataModels[goal][modelType][group]
@@ -35,7 +52,7 @@ def createData(goal, modelType, group):
         if len(dataPack['timeCols']) > 1:
             multiTime = True
         data.aggrigate(dataPack['aggTime'], dataPack['timeCols'], multiTime)
-        data.lagFuture(columns['y'], dataPack['lagTime'], dataPack['notLagTime'], dataPack['numPastSteps'], dataPack['numFutureSteps'])
+        data.lagFuture(columns['y'], dataPack['laggedVars'], dataPack['notLaggedVars'], dataPack['numPastSteps'], dataPack['numFutureSteps'])
         data.split(dataPack['testSize'], dataPack['validSize'], columns['y'], data.input_cols)
         
         ud.updateInitData(data, goal, 'Future', group)
@@ -48,12 +65,12 @@ def createModel(goal, modelType, group):
     model = parameters['model']
     initData = parameters['initData']
     modelPack = parameters['modelPack']
-    structure = modelPack['structure']
+    structure = modelPack["structure"]
     
     #Create Model
     if structure.upper() == 'REGULAR':
         simpModel = aim.model(modelPack['model'], modelPack['modelType'], modelPack['param_dist'], initData)
-        simpModel.train(1, modelPack['inerators'])
+        simpModel.train(1, modelPack['iterators'])
     elif structure.upper() == 'ENSEMBLE':
         simpModel = aim.ensemble(modelPack['modelList'], modelPack['newModelDataframe'], initData)
         simpModel.create_Base()

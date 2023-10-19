@@ -87,28 +87,28 @@ class data:
         
         if multiTimeRetain:
             for i in range(len(retain)): 
-                if(retain[i] == 'year'):
+                if(retain[i].upper() == 'YEAR'):
                     self.filtered[retain[i]] = self.filtered.index.year
-                elif(retain[i] == 'month'):
+                elif(retain[i].upper()  == 'MONTH'):
                     self.filtered[retain[i]] = self.filtered.index.month
-                elif(retain[i] == 'day'):
+                elif(retain[i].upper()  == 'DAY'):
                     self.filtered[retain[i]] = self.filtered.index.day
-                elif(retain[i] == 'hour'):
+                elif(retain[i].upper()  == 'HOUR'):
                     self.filtered[retain[i]] = self.filtered.index.hour
-                elif(retain[i] == 'minute'):
+                elif(retain[i].upper()  == 'MINUTE'):
                     self.filtered[retain[i]] = self.filtered.index.minute
                 else:
                     warnings.warn("No time column kept")
         else:
-            if(retain == 'year'):
+            if(retain.upper()  == 'YEAR'):
                 self.filtered[retain] = self.filtered.index.year
-            elif(retain == 'month'):
+            elif(retain.upper()  == 'MONTH'):
                 self.filtered[retain] = self.filtered.index.month
-            elif(retain == 'day'):
+            elif(retain.upper()  == 'DAY'):
                 self.filtered[retain] = self.filtered.index.day
-            elif(retain == 'hour'):
+            elif(retain.upper()  == 'HOUR'):
                 self.filtered[retain] = self.filtered.index.hour
-            elif(retain == 'minute'):
+            elif(retain.upper()  == 'MINUTE'):
                 self.filtered[retain] = self.filtered.index.minute
 
 

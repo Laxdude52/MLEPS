@@ -57,10 +57,10 @@ def updateSave(save, goal, modelType, group):
     dataModels[goal][modelType][group].update({"save":save})
 
 def createList(files):
-    tmpDataList = dict()
+    tmpDataList = []
     for i in range(len(files)):
         tmpData = pd.read_csv(files[i])
-        tmpDataList.update({i:tmpData})
+        tmpDataList.append(tmpData)
     return tmpDataList
 
 
