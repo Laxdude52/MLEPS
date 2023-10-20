@@ -45,17 +45,84 @@ Controller:
 
 '''
 
-def createDefualtCoalModels():
+def defaultPlantControl():
+    
+
+def createDefualtPlantModels():
+    
+    plantList = list()
+    plantList.append("Primemover 1")
+    plantList.append("Primemover 2")
+    plantList.append("Primemover 3")
+    plantList.append("Primemover 4")
+    plantList.append("Steam 1")
+    plantList.append("Steam 2")
+    plantList.append("Turbine 1")
+    plantList.append("Turbine 2") 
+    
+    for i in range(len(plantList)):
+        ud.addGoal(plantList[i])
+        ud.addGroup("default", plantList[i], 'Simple')
+    
     #Prepare the BTU data
-    testFileBtu = 'eWBrown.csv'
-    testBtu = pd.read_csv(testFileBtu)
-    BtuDf = pd.DataFrame(testBtu)
-    BtuDf.transpose(inplace=True)
-    BtuDf.columns = BtuDf.iloc[0]
-    BtuDf.drop(BtuDf.index[0], inplace=True)
+    prime1File = ["primemover1.csv"]
+    prime2File = ["primemover2.csv"]
+    prime3File = ["primemover3.csv"]
+    prime4File = ["primemover4.csv"]
+    steam1File = ["steam1.csv"]
+    steam2File = ["steam2.csv"]
+    turbine1File = ["turbine1.csv"]
+    turbine2File = ["turbine2.csv"]
+    prime1List = ud.createList(prime1File)
+    prime2List = ud.createList(prime2File)
+    prime3List = ud.createList(prime3File)
+    prime4List = ud.createList(prime4File)
+    steam1List = ud.createList(steam1File)
+    steam2List = ud.createList(steam2File)
+    turbine1List = ud.createList(turbine1File)
+    turbine2List = ud.createList(turbine2File)
     
-    #Prepare the production data
+    ud.updateDataList(prime1List, "Primemover 1", 'Simple', 'default')
+    ud.updateDataList(prime2List, "Primemover 2", 'Simple', 'default')
+    ud.updateDataList(prime3List, "Primemover 3", 'Simple', 'default')
+    ud.updateDataList(prime4List, "Primemover 4", 'Simple', 'default')
+    ud.updateDataList(steam1List, "Steam 1", 'Simple', 'default')
+    ud.updateDataList(steam2List, "Steam 2", 'Simple', 'default')
+    ud.updateDataList(turbine1List, "Turbine 1", 'Simple', 'default')
+    ud.updateDataList(turbine2List, "Turbine 2", 'Simple', 'default')
     
+    dataPack = dict()
+    
+    columns = dict()
+    columns.update({'all':['megawatthours', 'Fuel MMBtus']})
+    columns.update({'y':'megawatthours'})
+    columns.update({'X':['Fuel MMBtus']})
+    dataPack.update({"columns":columns})
+    
+    dataPack.update({"aboveVal": 'na'})
+    dataPack.update({"belowVal": 0})
+    dataPack.update({"naDecision":'zero'})
+    dataPack.update({"testSize":0.3})
+    dataPack.update({"validSize":0.1})
+
+
+    modelPack = dict()
+    modelPack.update({"modelType":'GAM'})
+    modelPack.update({"param_dist":'NA'})
+    modelPack.update({"iterators":1000})
+    modelPack.update({"structure":"regular"})
+    
+    for i in range(len(plantList)):
+        print(i)
+        ud.updateDataPack(copy.deepcopy(dataPack), plantList[i], "Simple", "default")
+        cm.createData(plantList[i], "Simple", "default")
+        tmpModelPack = copy.deepcopy(modelPack)
+        gamModel = cm.createDefaultGAM(30, 1000, plantList[i], "Simple", "default")
+        tmpModelPack.update({"model":gamModel})
+        ud.updateModelPack(tmpModelPack, plantList[i], "Simple", "default")
+        
+        print("Train model")
+        cm.createModel(plantList[i], "Simple", "default")
 
 def createDefaultSolar():
     ud.addGoal("Solar")
@@ -146,6 +213,8 @@ def createDefaultElectricityDemand():
     dataPack.update({'notLaggedVars':['Hour', 'Month', 'snwd', 'tmax', 'HolidayPresent']})
     dataPack.update({'numPastSteps':5}) 
     dataPack.update({'numFutureSteps':1})
+    tmpScaleVal = [0,400000]
+    dataPack.update({'scaleVal':tmpScaleVal})
     
     ud.updateDataPack(dataPack, "Demand", "Future", "default")
     

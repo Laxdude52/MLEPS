@@ -17,7 +17,7 @@ import warnings
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
-
+import pygam as pg
 
 def createDefaultDNN(goal, modelType, group):
     normalizer = tf.keras.layers.Normalization(axis=-1)
@@ -25,12 +25,17 @@ def createDefaultDNN(goal, modelType, group):
     normalizer.adapt(data.X_train)
     dnn_model = keras.Sequential([
         normalizer,
+        layers.Dense(63, activation='relu'),
         layers.Dense(32, activation='relu'),
-        layers.Dense(16, activation='sigmoid'),
+        layers.Dense(16, activation='relu'),
         layers.Dense(1)
     ])
     dnn_model.compile(loss='mean_absolute_error', optimizer=tf.keras.optimizers.Adam(.001))
     return dnn_model
+
+def createDefaultGAM(n_splines, max_iter, goal, modelType, group):
+    gam = pg.LinearGAM(n_splines=n_splines, verbose=True, max_iter=max_iter)
+    return gam
 
 def createData(goal, modelType, group):
     parameters = ud.dataModels[goal][modelType][group]
@@ -42,7 +47,12 @@ def createData(goal, modelType, group):
     if modelType.upper() == 'SIMPLE':
         simpData = aim.data(dataList)
         simpData.baseFilter(columns['all'], dataPack['aboveVal'], dataPack['belowVal'], dataPack['naDecision'])
-        simpData.split(dataPack['testSize'], dataPack['validSize'], columns['y'], columns['X'], shuffle=True)
+        
+        if not dataPack['scaleVal']=='na':
+            print("SCALE DA DATA")
+            simpData.split(dataPack['testSize'], dataPack['validSize'], columns['y'], columns['X'], scaleVal=dataPack['scaleVal'], shuffle=True)
+        else:
+            simpData.split(dataPack['testSize'], dataPack['validSize'], columns['y'], columns['X'], shuffle=True)
         
         ud.updateInitData(simpData, goal, 'Simple', group)
     elif modelType.upper() == 'FUTURE':
@@ -53,8 +63,12 @@ def createData(goal, modelType, group):
             multiTime = True
         data.aggrigate(dataPack['aggTime'], dataPack['timeCols'], multiTime)
         data.lagFuture(columns['y'], dataPack['laggedVars'], dataPack['notLaggedVars'], dataPack['numPastSteps'], dataPack['numFutureSteps'])
-        data.split(dataPack['testSize'], dataPack['validSize'], columns['y'], data.input_cols)
-        
+        if not dataPack['scaleVal']=='na':
+            print("SCALE DA DATA")
+            data.split(dataPack['testSize'], dataPack['validSize'], (columns['y']+'_future'), data.input_cols, scaleVal=dataPack['scaleVal'])
+        else:
+            data.split(dataPack['testSize'], dataPack['validSize'], (columns['y']+'_future'), data.input_cols)
+            
         ud.updateInitData(data, goal, 'Future', group)
     else:
         warnings.warn("INCORRECT MODEL TYPE ENTERED (Not simple/future")

@@ -35,6 +35,7 @@ from sklearn.cluster import OPTICS
 from sklearn.cluster import SpectralClustering
 from sklearn.mixture import GaussianMixture
 import warnings
+import copy
 
 class simpleData():
     def __init__(self, df):
@@ -131,6 +132,9 @@ class data:
         #return self.filtered
         for (columnName, columnData) in self.filtered.iteritems():
             print(columnName)
+            if(naDecision == 'zero'):
+                self.filtered[columnName] = pd.to_numeric(self.filtered[columnName], errors='coerce')
+                self.filtered[columnName].fillna(0, inplace=True)
             if(isinstance(columnData.values[0], numbers.Number)):
                 if(belowVal != 'na'):
                     print("Start Below")
@@ -150,6 +154,9 @@ class data:
                     self.filtered = self.filtered.assign(columnName = tmp)
                     '''
                     print("Replace NA Done")
+                if(naDecision == 'zero'):
+                    self.filtered[columnName].fillna(0, inplace=True)
+                    print("Replace NA Done")
                 print("Finished one")
             else:
                 print(columnName)
@@ -158,7 +165,7 @@ class data:
         if(naDecision == 'rmv'):
             print("Start Remove Filter")
             self.filtered.dropna(inplace=True)
-            print("Remove done")        
+            print("Remove done")     
             
     def summary(self):
         print(self.filtered.describe().transpose())
@@ -191,12 +198,19 @@ class data:
                 tmpcol = f'{col}_lag{i}'
                 self.input_cols = np.append(self.input_cols, tmpcol)
     
-    def split(self, testSize, validSize, target_variable, input_cols, shuffle=False):      
+    def split(self, testSize, validSize, target_variable, input_cols, scaleVal='NA', shuffle=False):      
         print("Split")
         # Step 3: Split the data
         test_size = int(len(self.filtered) * testSize)
         valid_size = int(len(self.filtered) * validSize)
         train_size = len(self.filtered) - valid_size - test_size
+        
+        if not scaleVal == 'NA':
+            print("SCALING")
+            newTargetVal = self.filtered[target_variable].values.reshape(-1, 1)
+            scaler = MinMaxScaler(feature_range=(scaleVal[0], scaleVal[1]))
+            fitScaler = scaler.fit_transform(newTargetVal)
+            self.filtered[target_variable] = copy.deepcopy(fitScaler)
         
         self.train_df = self.filtered.iloc[:train_size].copy()
         self.train_df.reset_index(inplace=True)
