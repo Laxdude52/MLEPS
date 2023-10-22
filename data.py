@@ -63,7 +63,10 @@ def createList(files):
         tmpDataList.append(tmpData)
     return tmpDataList
 
+plantInformation = dict()
 
+def newPlant(name, informationDict):
+    plantInformation.update({name:informationDict})
 
 #Old Code Below:
 '''

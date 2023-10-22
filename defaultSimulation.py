@@ -45,7 +45,15 @@ Controller:
 
 '''
 
+def defaultPlantInformation():
+    primt1Info = dict()
+    prime1Info.update({"Max":})
+    
+    ud.newPlant("Primeover 1", prime1Info)
+    
+
 def defaultPlantControl():
+    #First create the data
     
 
 def createDefualtPlantModels():
