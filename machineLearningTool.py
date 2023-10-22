@@ -135,6 +135,13 @@ class data:
             if(naDecision == 'zero'):
                 self.filtered[columnName] = pd.to_numeric(self.filtered[columnName], errors='coerce')
                 self.filtered[columnName].fillna(0, inplace=True)
+            try:
+                tmpX = copy.deepCopy(self.filtered['megawatthours'])
+                tmpy = copy.deepCopy(self.filtered['megawatthours'])
+                self.filtered['megawatthours'] = abs((tmpX/30)/24)
+                self.filtered['Fuel MMBtus'] = abs((tmpy/30)/24)
+            except:
+                print("Not a model heat rate dataset")
             if(isinstance(columnData.values[0], numbers.Number)):
                 if(belowVal != 'na'):
                     print("Start Below")

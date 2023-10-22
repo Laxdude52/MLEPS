@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import warnings
+import pygam as pg
 
 '''
 Use for E.W. Brown
@@ -42,32 +43,84 @@ Controller:
         Want to increase efficency score, use as reward
         if outside 5% of actual demand heavy penalty
         use logic to get the electricity production equal to real in final step
-
+        
+        Plant Info:
+            #Assume primemover 1 is coal plant 
+            
+            Coal1: 457 mW
+                10 hours to start, 41.2 mW/hr ramp speed
+            Coal: 2-4% of max output/minute
+            
+            Turbines:
+                full load in 30 minutes
+                4 produce 110 mW
+                2 produce 164 mW
+                1 produce 127 mW  
+                
+            
 '''
+plantList = list()
+plantList.append("Primemover 1")
+plantList.append("Primemover 2")
+plantList.append("Primemover 3")
+plantList.append("Steam 1")
+plantList.append("Steam 2")
+plantList.append("Turbine 1")
+plantList.append("Turbine 2") 
 
 def defaultPlantInformation():
-    primt1Info = dict()
-    prime1Info.update({"Max":})
+    prime1Info = dict()
+    prime1Info.update({"Max":625})
+    prime1Info.update({"MaxRamp":62.5})
+    ud.newPlant("Primemover 1", prime1Info)
     
-    ud.newPlant("Primeover 1", prime1Info)
+    prime2Info = dict()
+    prime2Info.update({"Max":19})
+    prime2Info.update({"MaxRamp":19})
+    ud.newPlant("Primemover 2", prime2Info)
     
-
+    prime3Info = dict()
+    prime3Info.update({"Max":243})
+    prime3Info.update({"MaxRamp":150})
+    ud.newPlant("Primemover 3", prime3Info)
+    
+    steam1Info = dict()
+    steam1Info.update({"Max":625})
+    steam1Info.update({"MaxRamp":100})
+    ud.newPlant("Steam 1", steam1Info)
+    
+    steam2Info = dict()
+    steam2Info.update({"Max":3})
+    steam2Info.update({"MaxRamp":3})
+    ud.newPlant("Steam 2", steam2Info)
+    
+    turbine1Info = dict()
+    turbine1Info.update({"Max":11})
+    turbine1Info.update({"MaxRamp":11})
+    ud.newPlant("Turbine 1", turbine1Info)
+    
+    turbine2Info = dict()
+    turbine2Info.update({"Max":25})
+    turbine2Info.update({"MaxRamp":25})
+    ud.newPlant("Turbine 2", turbine2Info)
+    
+    #Generate their grid (power output vs. heat rate)
+    for i in range(len(plantList)):
+        maxOut = ud.plantInformation[plantList[i]]['Max']
+        efficencyData = list()
+        for j in range(maxOut):
+            predEfficency = ud.predict(j, plantList[i], 'Simple', 'default')
+            print("EfficencyVal: " + str(predEfficency))
+            efficencyData.append(predEfficency)
+        efficencyData = pd.DataFrame(efficencyData)
+        efficencyData['output'] = efficencyData.index
+        ud.updatePlantEfficency(plantList[i], efficencyData)
+    
 def defaultPlantControl():
-    #First create the data
+        
     
 
 def createDefualtPlantModels():
-    
-    plantList = list()
-    plantList.append("Primemover 1")
-    plantList.append("Primemover 2")
-    plantList.append("Primemover 3")
-    plantList.append("Primemover 4")
-    plantList.append("Steam 1")
-    plantList.append("Steam 2")
-    plantList.append("Turbine 1")
-    plantList.append("Turbine 2") 
-    
     for i in range(len(plantList)):
         ud.addGoal(plantList[i])
         ud.addGroup("default", plantList[i], 'Simple')
@@ -76,7 +129,7 @@ def createDefualtPlantModels():
     prime1File = ["primemover1.csv"]
     prime2File = ["primemover2.csv"]
     prime3File = ["primemover3.csv"]
-    prime4File = ["primemover4.csv"]
+    #prime4File = ["primemover4.csv"]
     steam1File = ["steam1.csv"]
     steam2File = ["steam2.csv"]
     turbine1File = ["turbine1.csv"]
@@ -84,7 +137,7 @@ def createDefualtPlantModels():
     prime1List = ud.createList(prime1File)
     prime2List = ud.createList(prime2File)
     prime3List = ud.createList(prime3File)
-    prime4List = ud.createList(prime4File)
+    #prime4List = ud.createList(prime4File)
     steam1List = ud.createList(steam1File)
     steam2List = ud.createList(steam2File)
     turbine1List = ud.createList(turbine1File)
@@ -93,7 +146,7 @@ def createDefualtPlantModels():
     ud.updateDataList(prime1List, "Primemover 1", 'Simple', 'default')
     ud.updateDataList(prime2List, "Primemover 2", 'Simple', 'default')
     ud.updateDataList(prime3List, "Primemover 3", 'Simple', 'default')
-    ud.updateDataList(prime4List, "Primemover 4", 'Simple', 'default')
+    #ud.updateDataList(prime4List, "Primemover 4", 'Simple', 'default')
     ud.updateDataList(steam1List, "Steam 1", 'Simple', 'default')
     ud.updateDataList(steam2List, "Steam 2", 'Simple', 'default')
     ud.updateDataList(turbine1List, "Turbine 1", 'Simple', 'default')
@@ -103,8 +156,8 @@ def createDefualtPlantModels():
     
     columns = dict()
     columns.update({'all':['megawatthours', 'Fuel MMBtus']})
-    columns.update({'y':'megawatthours'})
-    columns.update({'X':['Fuel MMBtus']})
+    columns.update({'y':'Fuel MMBtus'})
+    columns.update({'X':['megawatthours']})
     dataPack.update({"columns":columns})
     
     dataPack.update({"aboveVal": 'na'})
@@ -112,7 +165,7 @@ def createDefualtPlantModels():
     dataPack.update({"naDecision":'zero'})
     dataPack.update({"testSize":0.3})
     dataPack.update({"validSize":0.1})
-
+    dataPack.update({"scaleVal":'na'})
 
     modelPack = dict()
     modelPack.update({"modelType":'GAM'})
@@ -125,11 +178,12 @@ def createDefualtPlantModels():
         ud.updateDataPack(copy.deepcopy(dataPack), plantList[i], "Simple", "default")
         cm.createData(plantList[i], "Simple", "default")
         tmpModelPack = copy.deepcopy(modelPack)
-        gamModel = cm.createDefaultGAM(30, 1000, plantList[i], "Simple", "default")
-        tmpModelPack.update({"model":gamModel})
+        #gamModel = cm.createDefaultGAM(30, 1000, plantList[i], "Simple", "default")
+        gam = pg.LinearGAM(n_splines=30, verbose=True, max_iter=1000)
+        tmpModelPack.update({"model":gam})
         ud.updateModelPack(tmpModelPack, plantList[i], "Simple", "default")
         
-        print("Train model")
+        print("Train model") 
         cm.createModel(plantList[i], "Simple", "default")
 
 def createDefaultSolar():
@@ -158,7 +212,7 @@ def createDefaultSolar():
     dataPack.update({"testSize":0.3})
     dataPack.update({"validSize":0.1})
     dataPack.update({"timeCols":['Hour', 'Month']})
-    dataPack.update({"aggTime":'H'})
+    dataPack.update({"aggTime":'D'})
     dataPack.update({'laggedVars':['kW', 'POAI', 'TmpF']})
     dataPack.update({'notLaggedVars':['Hour', 'Month']})
     dataPack.update({'numPastSteps':5})

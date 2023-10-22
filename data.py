@@ -56,6 +56,10 @@ def updateDataPack(dataPack, goal, modelType, group):
 def updateSave(save, goal, modelType, group):
     dataModels[goal][modelType][group].update({"save":save})
 
+def predict(X, goal, modelType, group):
+    val = dataModels[goal][modelType][group]['model'].model.predict(X)
+    return val
+
 def createList(files):
     tmpDataList = []
     for i in range(len(files)):
@@ -67,6 +71,10 @@ plantInformation = dict()
 
 def newPlant(name, informationDict):
     plantInformation.update({name:informationDict})
+def updatePlantEfficency(name, data):
+    plantInformation[name]['efficencyData'] = data
+
+
 
 #Old Code Below:
 '''
