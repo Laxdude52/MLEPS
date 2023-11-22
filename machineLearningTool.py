@@ -182,12 +182,12 @@ class data:
         print("Lag Future")
         
         try:
-            # Step 1: Create the target variable
+            #Create the target variable
             self.filtered[target_variable+'_future'] = self.filtered[target_variable].shift(-future_steps)
         except KeyError:
             raise Exception("Invalid target variable")
         
-        # Step 2: Feature engineering
+        #  Feature engineering
         for i in range(1, num_lags+1):
             for col in laggedVars:
                 try:
@@ -207,7 +207,7 @@ class data:
     
     def split(self, testSize, validSize, target_variable, input_cols, scaleVal='NA', shuffle=False):      
         print("Split")
-        # Step 3: Split the data
+        # Split the data
         test_size = int(len(self.filtered) * testSize)
         valid_size = int(len(self.filtered) * validSize)
         train_size = len(self.filtered) - valid_size - test_size

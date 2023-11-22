@@ -116,7 +116,7 @@ def defaultPlantInformation():
         efficencyData['output'] = efficencyData.index
         ud.updatePlantEfficency(plantList[i], efficencyData)
     
-def defaultPlantControl():
+#def defaultPlantControl():
         
     
 
