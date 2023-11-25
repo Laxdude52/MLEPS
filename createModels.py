@@ -50,9 +50,9 @@ def createData(goal, modelType, group):
         
         if not dataPack['scaleVal']=='na':
             print("SCALE DA DATA")
-            simpData.split(dataPack['testSize'], dataPack['validSize'], columns['y'], columns['X'], scaleVal=dataPack['scaleVal'], shuffle=True)
+            simpData.split(dataPack['testSize'], dataPack['validSize'], columns['y'], columns['X'], scaleVal=dataPack['scaleVal'])
         else:
-            simpData.split(dataPack['testSize'], dataPack['validSize'], columns['y'], columns['X'], shuffle=True)
+            simpData.split(dataPack['testSize'], dataPack['validSize'], columns['y'], columns['X'])
         
         ud.updateInitData(simpData, goal, 'Simple', group)
     elif modelType.upper() == 'FUTURE':
@@ -63,7 +63,7 @@ def createData(goal, modelType, group):
             multiTime = True
         data.aggrigate(dataPack['aggTime'], dataPack['timeCols'], multiTime)
         data.lagFuture(columns['y'], dataPack['laggedVars'], dataPack['notLaggedVars'], dataPack['numPastSteps'], dataPack['numFutureSteps'])
-        if not dataPack['scaleVal']=='na':
+        if not dataPack["scaleVal"] == 'na':
             print("SCALE DA DATA")
             data.split(dataPack['testSize'], dataPack['validSize'], (columns['y']+'_future'), data.input_cols, scaleVal=dataPack['scaleVal'])
         else:

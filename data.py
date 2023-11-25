@@ -20,8 +20,13 @@ dataModels -> goal -> modelType (simple/future) -> group -> {
 
 import pandas as pd
 import warnings 
+import copy
 
 dataModels = dict()
+
+def createElecData():
+    historicalElectricityData = copy.deepcopy(dataModels['Demand']['Simple']['default']['initData'].filtered)
+    return historicalElectricityData
  
 def addGoal(newName):
     dataModels.update({newName:dict()})
@@ -56,9 +61,15 @@ def updateDataPack(dataPack, goal, modelType, group):
 def updateSave(save, goal, modelType, group):
     dataModels[goal][modelType][group].update({"save":save})
 
-def predict(X, goal, modelType, group):
+def predict(X, goal, modelType, group): 
     val = dataModels[goal][modelType][group]['model'].model.predict(X)
     return val
+
+def livePredict(timeStamp, goal, modelType, group):
+    X_train = dataModels[goal][modelType][group]['initData'].X_train 
+    X = X_train.iloc[timeStamp]
+    val = dataModels[goal][modelType][group]['model'].model.predict(X)
+    return val 
 
 def createList(files):
     tmpDataList = []
@@ -74,7 +85,37 @@ def newPlant(name, informationDict):
 def updatePlantEfficency(name, data):
     plantInformation[name]['efficencyData'] = data
 
+def defPredict(goal, modelType, group):
+    X = dataModels[goal][modelType][group]['initData'].X_test
+    y = dataModels[goal][modelType][group]['initData'].y_test
+    results, predValues = dataModels[goal][modelType][group]["model"].modPredict(X, y, returnResults=True, returnPred=True)
+    print(results)
+    print(predValues)
+    return results, predValues
 
+
+def mostEfficent(plantName, plantLevel):
+    setData = plantInformation[plantName]['efficencyData'].iloc[plantLevel]
+    setLevel = setData[setData.columns[0]]
+    minLevel = setLevel - plantInformation[plantName]['MaxRamp']
+    maxLevel = setLevel + plantInformation[plantName]['MaxRamp']
+    
+    if(maxLevel > plantInformation[plantName]['Max']):
+        maxLevel = plantInformation[plantName]['Max']
+    if(minLevel < 0):
+        minLevel = 0
+    
+    minHeatRate = -1
+    for i in range(minLevel, maxLevel):
+        if(minHeatRate == -1):
+            minHeatRate = plantInformation[plantName]['efficencyData'].iloc[i]
+            minHeatRate = minHeatRate[minHeatRate.columns[0]]
+        else:
+            tmpHeatRate = plantInformation[plantName]['efficencyData'].iloc[i]
+            tmpHeatRate = tmpHeatRate[tmpHeatRate.columns[0]]
+            if(tmpHeatRate < minHeatRate):
+                minHeatRate = tmpHeatRate
+    return minHeatRate
 
 #Old Code Below:
 '''

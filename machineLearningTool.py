@@ -79,12 +79,12 @@ class data:
         except KeyError as e:
             warnings.warn(e)
             warnings.warn("NO TIMESTAMP FOUND")
-            raise Exception("NoColumn")
+            raise Exception("No Column")
             
         except TypeError as e:
             warnings.warn(e)
             warnings.warn("CAN NOT CONVERT TO DATETIME")
-            raise Exception("InalidColumn")
+            raise Exception("Inalid Column")
         
         if multiTimeRetain:
             for i in range(len(retain)): 

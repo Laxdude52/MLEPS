@@ -68,6 +68,34 @@ plantList.append("Steam 2")
 plantList.append("Turbine 1")
 plantList.append("Turbine 2") 
 
+def initDefaultSimulatioon():
+    createDefualtPlantModels()
+    createDefaultSolar()
+    createDefaultElectricityDemand()
+    
+    #Verify all models working
+    #Generate their grid (power output vs. heat rate)
+    for i in range(len(plantList)):
+        maxOut = ud.plantInformation[plantList[i]]['Max']
+        tmpData = list()
+        for j in range(maxOut):
+            predEfficency = ud.predict(j, plantList[i], 'Simple', 'default')
+            print("EfficencyVal: " + str(predEfficency))
+            tmpData.append(predEfficency)
+        tmpData = pd.DataFrame(tmpData)
+        tmpData['output'] = tmpData.index
+        print(tmpData)
+        
+    ud.defPredict("default", "Solar", "Future")
+    ud.defPredict("default", "Demand", "Future")
+    
+
+def defaultSteppingPlantControl():
+        #This algorithm operated by setting each plant to most efficent level within max ramp speed 
+        elecData = ud.createElecData()
+        
+    
+
 def defaultPlantInformation():
     prime1Info = dict()
     prime1Info.update({"Max":625})
@@ -115,10 +143,7 @@ def defaultPlantInformation():
         efficencyData = pd.DataFrame(efficencyData)
         efficencyData['output'] = efficencyData.index
         ud.updatePlantEfficency(plantList[i], efficencyData)
-    
-#def defaultPlantControl():
         
-    
 
 def createDefualtPlantModels():
     for i in range(len(plantList)):
@@ -217,6 +242,7 @@ def createDefaultSolar():
     dataPack.update({'notLaggedVars':['Hour', 'Month']})
     dataPack.update({'numPastSteps':5})
     dataPack.update({'numFutureSteps':1})
+    dataPack.update({"scaleVal":"na"})
     
     ud.updateDataPack(dataPack, "Solar", "Future", "default")
     
@@ -279,10 +305,12 @@ def createDefaultElectricityDemand():
     dataPack.update({'scaleVal':tmpScaleVal})
     
     ud.updateDataPack(dataPack, "Demand", "Future", "default")
+    ud.updateDataPack(dataPack, "Demand", "Simple", "default")
     
     print("Data pack initialized, now creating initialized data")
     cm.createData('Demand', "Future", "default")
-    
+    cm.createData('Demand', "Simple", "default")
+
     #Prepare model pack
     modelPack = dict()
     
