@@ -23,10 +23,23 @@ Get:
             real elec demand - real solar output (future) - other unit output (ex. battery, water)
  
 Do:
-    
+    Future:
+        Set future plant levels
+    Logic:
+        Set current plant levels
 
 '''
 
 
 import data as ud
+STARTTIME = 
 
+
+#Get current plant levels + max ramp up/down
+def getAllPlantInformation():
+    return ud.plantInformation
+
+def getSpecPlantInformation(plant):
+    return ud.plantInformation[plant]
+
+#Get solar pred 

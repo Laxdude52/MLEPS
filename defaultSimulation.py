@@ -68,8 +68,9 @@ plantList.append("Steam 2")
 plantList.append("Turbine 1")
 plantList.append("Turbine 2") 
 
-def initDefaultSimulatioon():
+def initDefaultSimulation():
     createDefualtPlantModels()
+    defaultPlantInformation()
     createDefaultSolar()
     createDefaultElectricityDemand()
     
@@ -86,8 +87,8 @@ def initDefaultSimulatioon():
         tmpData['output'] = tmpData.index
         print(tmpData)
         
-    ud.defPredict("default", "Solar", "Future")
-    ud.defPredict("default", "Demand", "Future")
+    ud.defPredict("Solar", "Future", 'default')
+    ud.defPredict("Demand", "Future", 'default')
     
 
 def defaultSteppingPlantControl():
@@ -100,36 +101,43 @@ def defaultPlantInformation():
     prime1Info = dict()
     prime1Info.update({"Max":625})
     prime1Info.update({"MaxRamp":62.5})
+    prime1Info.update({"CurrentLevel":0})
     ud.newPlant("Primemover 1", prime1Info)
     
     prime2Info = dict()
     prime2Info.update({"Max":19})
     prime2Info.update({"MaxRamp":19})
+    prime2Info.update({"CurrentLevel":0})
     ud.newPlant("Primemover 2", prime2Info)
     
     prime3Info = dict()
     prime3Info.update({"Max":243})
     prime3Info.update({"MaxRamp":150})
+    prime3Info.update({"CurrentLevel":0})
     ud.newPlant("Primemover 3", prime3Info)
     
     steam1Info = dict()
     steam1Info.update({"Max":625})
     steam1Info.update({"MaxRamp":100})
+    steam1Info.update({"CurrentLevel":0})
     ud.newPlant("Steam 1", steam1Info)
     
     steam2Info = dict()
     steam2Info.update({"Max":3})
     steam2Info.update({"MaxRamp":3})
+    steam2Info.update({"CurrentLevel":0})
     ud.newPlant("Steam 2", steam2Info)
     
     turbine1Info = dict()
     turbine1Info.update({"Max":11})
     turbine1Info.update({"MaxRamp":11})
+    turbine1Info.update({"CurrentLevel":0})
     ud.newPlant("Turbine 1", turbine1Info)
     
     turbine2Info = dict()
     turbine2Info.update({"Max":25})
     turbine2Info.update({"MaxRamp":25})
+    turbine2Info.update({"CurrentLevel":0})
     ud.newPlant("Turbine 2", turbine2Info)
     
     #Generate their grid (power output vs. heat rate)
@@ -143,7 +151,7 @@ def defaultPlantInformation():
         efficencyData = pd.DataFrame(efficencyData)
         efficencyData['output'] = efficencyData.index
         ud.updatePlantEfficency(plantList[i], efficencyData)
-        
+         
 
 def createDefualtPlantModels():
     for i in range(len(plantList)):
@@ -320,7 +328,7 @@ def createDefaultElectricityDemand():
     modelPack.update({"modelType":"DNN"})
     modelPack.update({"param_dist":'NA'})
     modelPack.update({"param_dist":'NA'})
-    modelPack.update({"iterators":300})
+    modelPack.update({"iterators":15})
     
     ud.updateModelPack(modelPack, "Demand", "Future", "default")
     
