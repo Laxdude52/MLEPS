@@ -67,7 +67,7 @@ def predict(X, goal, modelType, group):
 
 def livePredict(timeStamp, goal, modelType, group):
     X_train = dataModels[goal][modelType][group]['initData'].X_train 
-    X = X_train.iloc[timeStamp]
+    X = X_train.iloc[[timeStamp]]
     val = dataModels[goal][modelType][group]['model'].model.predict(X)
     return val 
 
