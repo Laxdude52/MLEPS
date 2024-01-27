@@ -4,11 +4,10 @@ Created on Fri Jan 26 10:53:33 2024
 
 @author: School Account
 """
-import defaultSim as sim
-import pandas as pd
+import defaultSimulation as sim
 import copy
 
-plantNameList = list(sim.plantList.keys())
+plantNameList = list(copy.deepcopy(sim.plantList))
 logFutDict = dict()
 
 for plant in plantNameList:
@@ -52,6 +51,7 @@ def logAllFutStep(idx, demand):
     logFutDict["totalHeatPerOut"].append(tmpHeatOut)
     logFutDict["elecDem"].append(tmpElecDem)
     logFutDict["diffOutDem"].append(tmpDiff)
+    print("\nFuture: \ndemand: " + str(tmpElecDem) + "\nout: " + str(tmpOut) + "\ndiff: " + str(tmpDiff))
     
 def logCurStep(plant, data):
     logCurDict[str(plant+"_level")].append(data[0])
@@ -78,3 +78,4 @@ def logCurFutStep(idx, demand):
     logCurDict["totalHeatPerOut"].append(tmpHeatOut)
     logCurDict["elecDem"].append(tmpElecDem)
     logCurDict["diffOutDem"].append(tmpDiff)
+    print("\Current: \ndemand: " + str(tmpElecDem) + "\nout: " + str(tmpOut) + "\ndiff: " + str(tmpDiff))

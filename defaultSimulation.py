@@ -56,7 +56,7 @@ Controller:
                 4 produce 110 mW
                 2 produce 164 mW
                 1 produce 127 mW  
-                
+                100
             
 '''
 plantList = list()
@@ -253,7 +253,7 @@ def createDefaultSolar():
     dataPack.update({"testSize":0.3})
     dataPack.update({"validSize":0.1})
     dataPack.update({"timeCols":['Hour', 'Month']})
-    dataPack.update({"aggTime":'D'})
+    dataPack.update({"aggTime":'H'})
     dataPack.update({'laggedVars':['kW', 'POAI', 'TmpF']})
     dataPack.update({'notLaggedVars':['Hour', 'Month']})
     dataPack.update({'numPastSteps':5})
@@ -273,8 +273,8 @@ def createDefaultSolar():
     modelPack.update({"structure":"regular"})
     modelPack.update({"modelType":"DNN"})
     modelPack.update({"param_dist":'NA'})
-    modelPack.update({"param_dist":'NA'})
-    modelPack.update({"iterators":100})
+    modelPack.update({"param_dist":'NA'}) 
+    modelPack.update({"iterators":30})
     
     ud.updateModelPack(modelPack, "Solar", "Future", "default")
     
