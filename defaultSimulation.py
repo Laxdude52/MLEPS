@@ -144,11 +144,19 @@ def defaultPlantInformation():
     for i in range(len(plantList)):
         maxOut = ud.plantInformation[plantList[i]]['Max']
         efficencyData = list()
+        efficencyPerOut = list()
         for j in range(maxOut):
             predEfficency = ud.predict(j, plantList[i], 'Simple', 'default')
             print("EfficencyVal: " + str(predEfficency))
             efficencyData.append(predEfficency)
+            if(j==0):
+                efficencyPerOutVal = predEfficency*2
+            else:
+                efficencyPerOutVal = predEfficency/j
+            efficencyPerOut.append(efficencyPerOutVal)
         efficencyData = pd.DataFrame(efficencyData)
+        efficencyPerOut = pd.DataFrame(efficencyPerOut)
+        efficencyData = pd.concat([efficencyData,efficencyPerOut], axis=1)
         efficencyData['output'] = efficencyData.index
         ud.updatePlantEfficency(plantList[i], efficencyData)
          
