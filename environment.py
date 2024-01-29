@@ -104,7 +104,6 @@ def getMostEfficent(rampDir, plant):
             if(data[i] < mostEfficentVal):
                 mostEfficentVal = data[i]
                 mostEfficentSpeed = i
-        heatRate = plant["efficencyData"].iloc[:,0][mostEfficentSpeed]
         #print("E level" + str(mostEfficentSpeed))
     elif (rampDir == -1):
         #print("Down")
@@ -123,7 +122,7 @@ def getMostEfficent(rampDir, plant):
         mostEfficentSpeed = plant["Max"]-1
     elif(mostEfficentSpeed < plant["Min"]):
         mostEfficentSpeed = plant["Min"]+1
-    #print("Plant new level: " + str(mostEfficentSpeed))
+    #print("Plant new level: " + str(mostEfficentSpeed) + " Plant max: " + str(plant['Max']))
     heatRate = plant["efficencyData"].iloc[:,0][mostEfficentSpeed]
     return mostEfficentSpeed, heatRate, mostEfficentVal
     
@@ -148,10 +147,10 @@ def futureAlgorithm(currentTime):
         rampDir = 0
         if(tmpGap > 0):
             rampDir = 1
-            print("Plant: " + str(plant) + " up")
+            #print("Plant: " + str(plant) + " up")
         elif(tmpGap < 0):   
             rampDir = -1
-            print("Plant: " + str(plant) + " down")
+            #print("Plant: " + str(plant) + " down")
         else:
             #raise Exception("Bro")
             print("Pass")
@@ -210,4 +209,4 @@ while True:
     currentAlgorithm(currentTime)    
 
     currentTime = currentTime+1
-    #time.sleep(.5)
+    #time.sleep(.05)
