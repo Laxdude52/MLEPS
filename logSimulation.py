@@ -26,12 +26,12 @@ logFutDict.update({"diffOutDem":list()})
 
 logCurDict = copy.deepcopy(logFutDict)
 
-def logFutStep(plant, data):
-    logFutDict[str(plant+"_level")].append(data[0])
-    logFutDict[str(plant+"_heatrate")].append(data[1])
-    logFutDict[str(plant+"_ratePerOut")].append(data[2])
+def logFutStep(plant, level, heatRate, heatPerOut):
+    logFutDict[str(plant+"_level")].append(level)
+    logFutDict[str(plant+"_heatrate")].append(heatRate)
+    logFutDict[str(plant+"_ratePerOut")].append(heatPerOut)
 
-def logAllFutStep(idx, demand):
+def logAllFutStep(idx, demand, solar):
     tmpOut = 0
     tmpHeat = 0
     tmpHeatOut = 0
@@ -43,7 +43,7 @@ def logAllFutStep(idx, demand):
         tmpHeat = tmpHeat + logFutDict[str(plant+"_heatrate")][idx]
     
     tmpElecDem = demand
-    tmpDiff = tmpOut - tmpElecDem
+    tmpDiff = tmpElecDem - tmpOut - solar
     tmpHeatOut = tmpHeat/tmpOut
     
     logFutDict["totalProd"].append(tmpOut)
@@ -53,12 +53,12 @@ def logAllFutStep(idx, demand):
     logFutDict["diffOutDem"].append(tmpDiff)
     print("\nFuture: \ndemand: " + str(tmpElecDem) + "\nout: " + str(tmpOut) + "\ndiff: " + str(tmpDiff))
     
-def logCurStep(plant, data):
-    logCurDict[str(plant+"_level")].append(data[0])
-    logCurDict[str(plant+"_heatrate")].append(data[1])
-    logCurDict[str(plant+"_ratePerOut")].append(data[2])
+def logCurStep(plant, level, heatRate, heatPerOut):
+    logCurDict[str(plant+"_level")].append(level)
+    logCurDict[str(plant+"_heatrate")].append(heatRate)
+    logCurDict[str(plant+"_ratePerOut")].append(heatPerOut)
 
-def logCurFutStep(idx, demand):
+def logCurFutStep(idx, demand, solar):
     tmpOut = 0
     tmpHeat = 0
     tmpHeatOut = 0
@@ -66,11 +66,11 @@ def logCurFutStep(idx, demand):
     tmpDiff = 0
     
     for plant in plantNameList:
-        tmpOut = tmpOut + logCurDict[str(plant+"_level")][idx]
-        tmpHeat = tmpHeat + logCurDict[str(plant+"_heatrate")][idx]
+        tmpOut = tmpOut + logCurDict[str(plant+"_level")][idx-1]
+        tmpHeat = tmpHeat + logCurDict[str(plant+"_heatrate")][idx-1]
     
     tmpElecDem = demand
-    tmpDiff = tmpOut - tmpElecDem
+    tmpDiff = tmpElecDem - tmpOut - solar
     tmpHeatOut = tmpHeat/tmpOut
     
     logCurDict["totalProd"].append(tmpOut)

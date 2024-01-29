@@ -35,9 +35,10 @@ import data as ud
 import defaultSimulation as sim
 import time
 import logSimulation as los
+import copy
+import random
 
 STARTTIME = 0
-currentTime = 0 
 solarModelInfo = ['default', 'Solar']
 
 #Get current plant levels + max ramp up/down
@@ -48,19 +49,21 @@ def getSpecPlantInformation(plant):
     return ud.plantInformation[plant]
 
 #Get solar pred 
-def getSolarPred():
+def getSolarPred(currentTime):
+    print(currentTime)
     return ud.livePredict(currentTime, 'Solar', 'Future', 'default')
 
-def getCurrentSolar():
+def getCurrentSolar(currentTime):
     data = ud.dataModels['Solar']['Simple']['default']['initData'].y_train.iloc[[currentTime]]
     return data    
 
 #Get elecDemandPRed
-def fgetElecDemand():
+def fgetElecDemand(currentTime):
+    print(currentTime)
     return ud.livePredict(currentTime, 'Demand', 'Future', 'default')
 
 #Get real elec demand
-def rgetElecDemand():
+def rgetElecDemand(currentTime):
     data = ud.dataModels['Demand']['Simple']['default']['initData'].y_train.iloc[[currentTime]]
     return data
 
@@ -71,94 +74,140 @@ def getCurrentProduction():
         tmpCurProd = tmpCurProd + tmpPlantInfo["CurrentLevel"]
     return tmpCurProd
 
-def setPlantLevel(plant, level):
-    ud.plantInformation[plant]["CurrentLevel"] = level
+def resetSimulation():
+    for plant in sim.plantList:
+        ud.setPlantLevel(plant, ud.plantInformation[plant]["Min"])
     
 sim.initDefaultSimulation()
 
 def getMostEfficent(rampDir, plant):
-    mostEfficentVal = 9*10^3
-    mostEfficentSpeed = 9*10^3
+    mostEfficentVal = 90000000
+    mostEfficentSpeed = 90000000
+    i=0
     data = plant["efficencyData"].iloc[:,1] 
+    #print("CurLevel" + str(plant["CurrentLevel"]))
     currentLevel = plant["CurrentLevel"]
+    #print(plant)
+    #print("CurLevel" + str(currentLevel))
+    maxOut = plant["Max"]-1 
+    if(maxOut < currentLevel+plant["MaxRamp"]):
+        upperBound = maxOut
+    else:
+        upperBound = currentLevel+plant["MaxRamp"]
+    if((plant['Min']+1) > currentLevel-plant["MaxRamp"]):
+        lowerBound = plant['Min']+1
+    else:
+        lowerBound = currentLevel-plant["MaxRamp"]
     if (rampDir == 1):
-        #Error here, can go above absolute max output, use additional logic to fix
-        for i in range(currentLevel,int(currentLevel + plant["MaxRamp"])):
+        #print("Cur: " + str(currentLevel) + "\nUppB: " + str(upperBound))
+        for i in range(currentLevel, upperBound):
             if(data[i] < mostEfficentVal):
                 mostEfficentVal = data[i]
                 mostEfficentSpeed = i
         heatRate = plant["efficencyData"].iloc[:,0][mostEfficentSpeed]
-        return mostEfficentSpeed, heatRate, mostEfficentVal
+        #print("E level" + str(mostEfficentSpeed))
     elif (rampDir == -1):
-        for i in range(currentLevel, int(currentLevel-plant["MaxRamp"])):
+        #print("Down")
+        #print("CurLevel: (Loop) " + str(currentLevel))
+        #print("lowBound: (Loop) " + str(lowerBound))
+
+        for i in range(lowerBound, currentLevel):
             if(data[i] < mostEfficentVal):
-                mostEfficentVal = data[i]
-                mostEfficentSpeed = i
-        heatRate = plant["efficencyData"].iloc[:,0][mostEfficentSpeed]
-        return mostEfficentSpeed, heatRate, mostEfficentVal
+                mostEfficentVal = data[lowerBound]
+                mostEfficentSpeed = lowerBound
+    else:
+        print(rampDir)
+        pass
+        #raise Exception("No dir")
+    if(mostEfficentSpeed > plant["Max"]):
+        mostEfficentSpeed = plant["Max"]-1
+    elif(mostEfficentSpeed < plant["Min"]):
+        mostEfficentSpeed = plant["Min"]+1
+    #print("Plant new level: " + str(mostEfficentSpeed))
+    heatRate = plant["efficencyData"].iloc[:,0][mostEfficentSpeed]
+    return mostEfficentSpeed, heatRate, mostEfficentVal
     
 def futureAlgorithm(currentTime):
-    tmpElecDemandPred = fgetElecDemand()
+    random.shuffle(sim.plantList)
+    tmpElecDemandPred = int(fgetElecDemand(currentTime))
     print("Pred elec demand: " + str(tmpElecDemandPred))
     
-    tmpSolarPred = getSolarPred()
+    tmpSolarPred = int(getSolarPred(currentTime))
     print("Pred solar out: " + str(tmpSolarPred))
     
     for plant in sim.plantList:
         tmpCurProd = getCurrentProduction()
-        print("Current Production: " + str(tmpCurProd))
+        #print("Current Production: " + str(tmpCurProd))
         
         tmpDemand = tmpElecDemandPred-tmpSolarPred-tmpCurProd
         tmpPlantInfo = getSpecPlantInformation(plant)
         #print(str(plant) + " Max Ramp: " + str(tmpPlantInfo["MaxRamp"]) + " Current Level: " + str(tmpPlantInfo["CurrentLevel"]))
         tmpGap = tmpDemand - tmpCurProd
-        print("Demand: " + str(tmpDemand))
-        print("Productin: " + str(tmpCurProd))
+        #print("Demand: " + str(tmpDemand))
+        #print("Production: " + str(tmpCurProd))
         rampDir = 0
         if(tmpGap > 0):
             rampDir = 1
-        elif(tmpGap < 0):
+            print("Plant: " + str(plant) + " up")
+        elif(tmpGap < 0):   
             rampDir = -1
+            print("Plant: " + str(plant) + " down")
         else:
+            #raise Exception("Bro")
+            print("Pass")
             pass
         mostEfficentSpeed, hR, efVal = getMostEfficent(rampDir, tmpPlantInfo)
-        print(mostEfficentSpeed)
-        setPlantLevel(plant, mostEfficentSpeed)
-        los.logFutStep(plant,[mostEfficentSpeed,hR,efVal])
-    los.logAllFutStep(currentTime, tmpDemand)
+        change = abs(int(tmpPlantInfo['CurrentLevel']-mostEfficentSpeed))
+        #print("Change: " + str(change))
+        #print("Old: " + str(tmpPlantInfo['CurrentLevel']) + " New: " + str(mostEfficentSpeed))
+        ud.setPlantLevel(plant, mostEfficentSpeed)
+        ud.updatePlantRampLeft(plant, change)
+        #print("Newlevel" + str(tmpPlantInfo['CurrentLevel']))
+        los.logFutStep(plant,mostEfficentSpeed,hR,efVal)
+        #time.sleep(1)
+    los.logAllFutStep(currentTime, tmpElecDemandPred, tmpSolarPred)
 
 def currentAlgorithm(currentTime):
-    tmpRealDemand = rgetElecDemand()
+    random.shuffle(sim.plantList)
+    tmpRealDemand = int(rgetElecDemand(currentTime))
     #print("Real elec demand: " + str(tmpRealDemand))
-    tmpRealSolar = getCurrentSolar()
-    
-    tmpDem = tmpRealDemand-tmpRealSolar
-    tmpCurProd = getCurrentProduction()
-    
+    tmpRealSolar = int(getCurrentSolar(currentTime))
+        
     for plant in sim.plantList:
         tmpPlantInfo = getSpecPlantInformation(plant)
-        #print(str(plant) + " Max Ramp: " + str(tmpPlantInfo["MaxRamp"]) + " Current Level: " + str(tmpPlantInfo["CurrentLevel"]))
+        tmpCurProd = getCurrentProduction()  
+        tmpDem = tmpRealDemand-tmpRealSolar-tmpCurProd
+        #print(str(plant) + " Max Ramp: " + str(tmpPlantInfo["MaxRamp"]) + "  Current Level: " + str(tmpPlantInfo["CurrentLevel"]))
         tmpGap = tmpDem - tmpCurProd
-        
-        if(abs(tmpGap) < tmpPlantInfo["MaxRamp"]):
+        #print("Gap: " + str(tmpGap))
+        #print("Left Ramp" + str(tmpPlantInfo["LeftRamp"]))
+        if(abs(tmpGap) < tmpPlantInfo["LeftRamp"]):
             newLevel = tmpPlantInfo["CurrentLevel"] + tmpGap
         else:
             if(tmpGap > 0):
-                newLevel = tmpPlantInfo['CurrentLevel'] + tmpPlantInfo['MaxRamp']
+                newLevel = tmpPlantInfo['CurrentLevel'] + tmpPlantInfo['LeftRamp']
             elif(tmpGap < 0):
-                newLevel = tmpPlantInfo['CurrentLevel'] - tmpPlantInfo['MaxRamp']
+                newLevel = tmpPlantInfo['CurrentLevel'] - tmpPlantInfo['LeftRamp']
             else:
                 pass
-        setPlantLevel(plant, newLevel)
+        if(newLevel > tmpPlantInfo["Max"]):
+            newLevel = tmpPlantInfo["Max"]-1
+        elif(newLevel < tmpPlantInfo["Min"]):
+            newLevel = tmpPlantInfo["Min"]+1
+        ud.setPlantLevel(plant, newLevel)
+        ud.resetPlantRampLeft(plant)
+        #print("Live level: " + str(getSpecPlantInformation(plant)["CurrentLevel"]))
         heat = tmpPlantInfo["efficencyData"].iloc[:,0][newLevel]
         heatPerOut = tmpPlantInfo["efficencyData"].iloc[:,1][newLevel]
-        los.logCurStep(plant, [newLevel,heat,heatPerOut])
-    los.logCurFutStep(currentTime, tmpDem)
-
+        los.logCurStep(plant, newLevel,heat,heatPerOut)
+    los.logCurFutStep(currentTime, tmpRealDemand, tmpRealSolar)
+ 
+resetSimulation()
+currentTime = 0
 while True: 
     futureAlgorithm(currentTime)
     
     currentAlgorithm(currentTime)    
 
     currentTime = currentTime+1
-    time.sleep(1)
+    #time.sleep(.5)

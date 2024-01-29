@@ -73,7 +73,7 @@ def initDefaultSimulation():
     defaultPlantInformation()
     createDefaultSolar()
     createDefaultElectricityDemand()
-    
+    '''
     #Verify all models working
     #Generate their grid (power output vs. heat rate)
     for i in range(len(plantList)):
@@ -81,12 +81,14 @@ def initDefaultSimulation():
         tmpData = list()
         for j in range(maxOut):
             predEfficency = ud.predict(j, plantList[i], 'Simple', 'default')
+            if(predEfficency < 0):
+                predEfficency = predEfficency*predEfficency
             print("EfficencyVal: " + str(predEfficency))
             tmpData.append(predEfficency)
         tmpData = pd.DataFrame(tmpData)
         tmpData['output'] = tmpData.index
         print(tmpData)
-        
+        '''
     ud.defPredict("Solar", "Future", 'default')
     ud.defPredict("Demand", "Future", 'default')
     
@@ -98,56 +100,74 @@ def defaultSteppingPlantControl():
     
 
 def defaultPlantInformation():
+
     prime1Info = dict()
-    prime1Info.update({"Max":625})
-    prime1Info.update({"MaxRamp":62.5})
-    prime1Info.update({"CurrentLevel":0})
+    prime1Info.update({"Max":62500})
+    prime1Info.update({"Min":6250})
+    prime1Info.update({"MaxRamp":6250})
+    prime1Info.update({"LeftRamp":6250})
+    prime1Info.update({"CurrentLevel":6250})
     ud.newPlant("Primemover 1", prime1Info)
-    
+     
     prime2Info = dict()
-    prime2Info.update({"Max":19})
-    prime2Info.update({"MaxRamp":19})
-    prime2Info.update({"CurrentLevel":0})
+    prime2Info.update({"Max":49000})
+    prime2Info.update({"Min":4900})
+    prime2Info.update({"MaxRamp":4900})
+    prime2Info.update({"LeftRamp":4900})
+    prime2Info.update({"CurrentLevel":4900})
     ud.newPlant("Primemover 2", prime2Info)
     
     prime3Info = dict()
-    prime3Info.update({"Max":243})
-    prime3Info.update({"MaxRamp":150})
-    prime3Info.update({"CurrentLevel":0})
+    prime3Info.update({"Max":34300})
+    prime3Info.update({"Min":3430})
+    prime3Info.update({"MaxRamp":3430})
+    prime3Info.update({"LeftRamp":3430})
+    prime3Info.update({"CurrentLevel":3430})
     ud.newPlant("Primemover 3", prime3Info)
     
     steam1Info = dict()
-    steam1Info.update({"Max":625})
-    steam1Info.update({"MaxRamp":100})
-    steam1Info.update({"CurrentLevel":0})
+    steam1Info.update({"Max":62500})
+    steam1Info.update({"Min":6250})
+    steam1Info.update({"MaxRamp":6250})
+    steam1Info.update({"LeftRamp":6250})
+    steam1Info.update({"CurrentLevel":6250})
     ud.newPlant("Steam 1", steam1Info)
     
     steam2Info = dict()
-    steam2Info.update({"Max":3})
-    steam2Info.update({"MaxRamp":3})
-    steam2Info.update({"CurrentLevel":0})
+    steam2Info.update({"Max":43000})
+    steam2Info.update({"Min":4300})
+    steam2Info.update({"MaxRamp":4300})
+    steam2Info.update({"LeftRamp":4300})
+    steam2Info.update({"CurrentLevel":4300})
     ud.newPlant("Steam 2", steam2Info)
     
     turbine1Info = dict()
-    turbine1Info.update({"Max":11})
-    turbine1Info.update({"MaxRamp":11})
-    turbine1Info.update({"CurrentLevel":0})
+    turbine1Info.update({"Max":22000})
+    turbine1Info.update({"Min":2200})
+    turbine1Info.update({"MaxRamp":2200})
+    turbine1Info.update({"LeftRamp":2200})
+    turbine1Info.update({"CurrentLevel":2200})
     ud.newPlant("Turbine 1", turbine1Info)
     
     turbine2Info = dict()
-    turbine2Info.update({"Max":25})
-    turbine2Info.update({"MaxRamp":25})
-    turbine2Info.update({"CurrentLevel":0})
+    turbine2Info.update({"Max":45000})
+    turbine2Info.update({"Min":4500})
+    turbine2Info.update({"MaxRamp":4500})
+    turbine2Info.update({"LeftRamp":4500})
+    turbine2Info.update({"CurrentLevel":4500})
     ud.newPlant("Turbine 2", turbine2Info)
     
+    print("Creating heat rate map")
     #Generate their grid (power output vs. heat rate)
     for i in range(len(plantList)):
         maxOut = ud.plantInformation[plantList[i]]['Max']
+        minOut = ud.plantInformation[plantList[i]]['Min']
         efficencyData = list()
         efficencyPerOut = list()
-        for j in range(maxOut):
+        for j in range(minOut, maxOut):
             predEfficency = ud.predict(j, plantList[i], 'Simple', 'default')
-            print("EfficencyVal: " + str(predEfficency))
+            if(predEfficency < 0):
+                predEfficency = predEfficency*predEfficency
             efficencyData.append(predEfficency)
             if(j==0):
                 efficencyPerOutVal = predEfficency*2
@@ -157,7 +177,8 @@ def defaultPlantInformation():
         efficencyData = pd.DataFrame(efficencyData)
         efficencyPerOut = pd.DataFrame(efficencyPerOut)
         efficencyData = pd.concat([efficencyData,efficencyPerOut], axis=1)
-        efficencyData['output'] = efficencyData.index
+        efficencyData['output'] = efficencyData.index + ud.plantInformation[plantList[i]]['Min']
+        efficencyData.set_index('output', inplace=True)
         ud.updatePlantEfficency(plantList[i], efficencyData)
          
 
@@ -176,13 +197,47 @@ def createDefualtPlantModels():
     turbine1File = ["turbine1.csv"]
     turbine2File = ["turbine2.csv"]
     prime1List = ud.createList(prime1File)
+    prime1List[0].iloc[:,0] = pd.to_numeric(prime1List[0].iloc[:,0],errors='coerce')
+    prime1List[0].iloc[:,1] = pd.to_numeric(prime1List[0].iloc[:,1],errors='coerce')
+    #prime1List[0] = prime1List[0].dropna()
+    prime1List[0].iloc[:,0] = prime1List[0].iloc[:,0]*1000
+    
     prime2List = ud.createList(prime2File)
+    prime2List[0].iloc[:,0] = pd.to_numeric(prime2List[0].iloc[:,0],errors='coerce')
+    prime2List[0].iloc[:,1] = pd.to_numeric(prime2List[0].iloc[:,1],errors='coerce')
+    #prime2List[0] = prime2List[0].dropna()
+    prime2List[0].iloc[:,0] = prime2List[0].iloc[:,0]*1000
+    
     prime3List = ud.createList(prime3File)
+    prime3List[0].iloc[:,0] = pd.to_numeric(prime3List[0].iloc[:,0],errors='coerce')
+    prime3List[0].iloc[:,1] = pd.to_numeric(prime3List[0].iloc[:,1],errors='coerce')
+    #prime3List[0] = prime3List[0].dropna()
+    prime3List[0].iloc[:,0] = prime3List[0].iloc[:,0]*1000
+    
     #prime4List = ud.createList(prime4File)
     steam1List = ud.createList(steam1File)
+    steam1List[0].iloc[:,0] = pd.to_numeric(steam1List[0].iloc[:,0],errors='coerce')
+    steam1List[0].iloc[:,1] = pd.to_numeric(steam1List[0].iloc[:,1],errors='coerce')
+    #steam1List[0] = steam1List[0].dropna()
+    steam1List[0].iloc[:,0] = steam1List[0].iloc[:,0]*1000
+    
     steam2List = ud.createList(steam2File)
+    steam2List[0].iloc[:,0] = pd.to_numeric(steam2List[0].iloc[:,0],errors='coerce')
+    steam2List[0].iloc[:,1] = pd.to_numeric(steam2List[0].iloc[:,1],errors='coerce')
+    #steam2List[0] = steam2List[0].dropna()
+    steam2List[0].iloc[:,0] = steam2List[0].iloc[:,0]*1000
+    
     turbine1List = ud.createList(turbine1File)
+    turbine1List[0].iloc[:,0] = pd.to_numeric(turbine1List[0].iloc[:,0],errors='coerce')
+    turbine1List[0].iloc[:,1] = pd.to_numeric(turbine1List[0].iloc[:,1],errors='coerce')
+    #turbine1List[0] = turbine1List[0].dropna()
+    turbine1List[0].iloc[:,0] = turbine1List[0].iloc[:,0]*1000
+    
     turbine2List = ud.createList(turbine2File)
+    turbine2List[0].iloc[:,0] = pd.to_numeric(turbine2List[0].iloc[:,0],errors='coerce')
+    turbine2List[0].iloc[:,1] = pd.to_numeric(turbine2List[0].iloc[:,1],errors='coerce')
+    #turbine2List[0] = turbine2List[0].dropna()
+    turbine2List[0].iloc[:,0] = turbine2List[0].iloc[:,0]*1000
     
     ud.updateDataList(prime1List, "Primemover 1", 'Simple', 'default')
     ud.updateDataList(prime2List, "Primemover 2", 'Simple', 'default')
@@ -207,20 +262,20 @@ def createDefualtPlantModels():
     dataPack.update({"testSize":0.3})
     dataPack.update({"validSize":0.1})
     dataPack.update({"scaleVal":'na'})
+    dataPack.update({"aggTime":'na'})
 
     modelPack = dict()
     modelPack.update({"modelType":'GAM'})
     modelPack.update({"param_dist":'NA'})
-    modelPack.update({"iterators":1000})
+    modelPack.update({"iterators":5000})
     modelPack.update({"structure":"regular"})
     
     for i in range(len(plantList)):
-        print(i)
         ud.updateDataPack(copy.deepcopy(dataPack), plantList[i], "Simple", "default")
         cm.createData(plantList[i], "Simple", "default")
         tmpModelPack = copy.deepcopy(modelPack)
         #gamModel = cm.createDefaultGAM(30, 1000, plantList[i], "Simple", "default")
-        gam = pg.LinearGAM(n_splines=30, verbose=True, max_iter=1000)
+        gam = pg.LinearGAM(n_splines=50, verbose=True, max_iter=1000)
         tmpModelPack.update({"model":gam})
         ud.updateModelPack(tmpModelPack, plantList[i], "Simple", "default")
         
@@ -261,9 +316,11 @@ def createDefaultSolar():
     dataPack.update({"scaleVal":"na"})
     
     ud.updateDataPack(dataPack, "Solar", "Future", "default")
+    ud.updateDataPack(dataPack, "Solar", "Simple", "default")
     
     print("Data pack initialized, now creating initialized data")
     cm.createData('Solar', "Future", "default")
+    cm.createData('Solar', "Simple", "default")
     
     #Prepare model pack
     modelPack = dict()

@@ -84,6 +84,13 @@ def newPlant(name, informationDict):
     plantInformation.update({name:informationDict})
 def updatePlantEfficency(name, data):
     plantInformation[name]['efficencyData'] = data
+def setPlantLevel(name, level):
+    newInfo = dict({"CurrentLevel":level})
+    plantInformation[name].update(newInfo)
+def updatePlantRampLeft(name, levelChange):
+    plantInformation[name]['LeftRamp'] = (plantInformation[name]['MaxRamp']-abs(levelChange))
+def resetPlantRampLeft(name):
+    plantInformation[name]['LeftRamp'] = plantInformation[name]['MaxRamp']
 
 def defPredict(goal, modelType, group):
     X = dataModels[goal][modelType][group]['initData'].X_test

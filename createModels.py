@@ -8,7 +8,6 @@ Created on Wed Oct 18 09:52:19 2023
 import machineLearningTool as aim
 import data as ud
 import pandas as pd
-import copy
 import pickle 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -47,6 +46,8 @@ def createData(goal, modelType, group):
     if modelType.upper() == 'SIMPLE':
         simpData = aim.data(dataList)
         simpData.baseFilter(columns['all'], dataPack['aboveVal'], dataPack['belowVal'], dataPack['naDecision'])
+        if not (dataPack['aggTime'] == 'na'):
+            simpData.aggrigate(dataPack['aggTime'], 'na', False)
         
         if not dataPack['scaleVal']=='na':
             print("SCALE DA DATA")
