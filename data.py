@@ -60,6 +60,9 @@ def updateDataPack(dataPack, goal, modelType, group):
     dataModels[goal][modelType][group].update({"dataPack":dataPack})
 def updateSave(save, goal, modelType, group):
     dataModels[goal][modelType][group].update({"save":save})
+def loadDataModels(data):
+    global dataModels
+    dataModels = data
 
 def predict(X, goal, modelType, group): 
     val = dataModels[goal][modelType][group]['model'].model.predict(X)
@@ -91,6 +94,9 @@ def updatePlantRampLeft(name, levelChange):
     plantInformation[name]['LeftRamp'] = (plantInformation[name]['MaxRamp']-abs(levelChange))
 def resetPlantRampLeft(name):
     plantInformation[name]['LeftRamp'] = plantInformation[name]['MaxRamp']
+def loadPlantInformation(data):
+    global plantInformation
+    plantInformation = data
 
 def defPredict(goal, modelType, group):
     X = dataModels[goal][modelType][group]['initData'].X_test

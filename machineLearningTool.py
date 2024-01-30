@@ -130,17 +130,18 @@ class data:
         if not self.valid:
             raise Exception("Invalid Input")
         #return self.filtered
-        for (columnName, columnData) in self.filtered.iteritems():
+        for (columnName, columnData) in self.filtered.items():
             print(columnName)
             if(naDecision == 'zero'):
                 self.filtered[columnName] = pd.to_numeric(self.filtered[columnName], errors='coerce')
                 self.filtered[columnName].fillna(0, inplace=True)
             try:
-                tmpX = copy.deepCopy(self.filtered['megawatthours'])
-                tmpy = copy.deepCopy(self.filtered['megawatthours'])
+                tmpX = copy.deepcopy(self.filtered['megawatthours'])
+                tmpy = copy.deepcopy(self.filtered['Fuel MMBtus'])
                 self.filtered['megawatthours'] = abs((tmpX/30)/24)
                 self.filtered['Fuel MMBtus'] = abs((tmpy/30)/24)
-            except:
+            except Exception as e:
+                print(e)
                 print("Not a model heat rate dataset")
             if(isinstance(columnData.values[0], numbers.Number)):
                 if(belowVal != 'na'):

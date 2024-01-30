@@ -16,6 +16,8 @@ import numpy as np
 import os
 import warnings
 import pygam as pg
+import tensorflow as tf
+from tensorflow import keras
 
 '''
 Use for E.W. Brown
@@ -68,36 +70,59 @@ plantList.append("Steam 2")
 plantList.append("Turbine 1")
 plantList.append("Turbine 2") 
 
-def initDefaultSimulation():
-    createDefualtPlantModels()
-    defaultPlantInformation()
-    createDefaultSolar()
-    createDefaultElectricityDemand()
-    '''
-    #Verify all models working
-    #Generate their grid (power output vs. heat rate)
-    for i in range(len(plantList)):
-        maxOut = ud.plantInformation[plantList[i]]['Max']
-        tmpData = list()
-        for j in range(maxOut):
-            predEfficency = ud.predict(j, plantList[i], 'Simple', 'default')
-            if(predEfficency < 0):
-                predEfficency = predEfficency*predEfficency
-            print("EfficencyVal: " + str(predEfficency))
-            tmpData.append(predEfficency)
-        tmpData = pd.DataFrame(tmpData)
-        tmpData['output'] = tmpData.index
-        print(tmpData)
+def initDefaultSimulation(load, save=False):
+    if not load:
+        createDefualtPlantModels()
+        defaultPlantInformation()
+        createDefaultSolar()
+        createDefaultElectricityDemand()
         '''
-    ud.defPredict("Solar", "Future", 'default')
-    ud.defPredict("Demand", "Future", 'default')
-    
+        #Verify all models working
+        #Generate their grid (power output vs. heat rate)
+        for i in range(len(plantList)):
+            maxOut = ud.plantInformation[plantList[i]]['Max']
+            tmpData = list()
+            for j in range(maxOut):
+                predEfficency = ud.predict(j, plantList[i], 'Simple', 'default')
+                if(predEfficency < 0):
+                    predEfficency = predEfficency*predEfficency
+                print("EfficencyVal: " + str(predEfficency))
+                tmpData.append(predEfficency)
+            tmpData = pd.DataFrame(tmpData)
+            tmpData['output'] = tmpData.index
+            print(tmpData)
+            '''
+        ud.defPredict("Solar", "Future", 'default')
+        ud.defPredict("Demand", "Future", 'default')
+        if save:
+            #pickle.dump(ud.plantInformation, open("savedPlantInformation.pk1", 'wb'))
+            with open('savedPlantInformation.pickle', 'wb') as handle:
+                pickle.dump(ud.plantInformation, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            #with open('savedDataModels.pickle', 'wb') as handle:
+            #    pickle.dump(ud.dataModels, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            #model.save('my_model.keras')
+            #ud.dataModels['Demand']['Future']['default']['model'].model.save('demandFutureDefault.keras')
+            #ud.dataModels['Solar']['Future']['default']['model'].model.save('solarFutureDefault.keras')
+    elif load:
+        #savedPlantInfo = pickle.load(open("savedPlantInformation.pk1", 'rb'))
+        #ud.plantInformation = savedPlantInfo
+        with open('savedPlantInformation.pickle', 'rb') as handle:
+            savedPlantInfo = pickle.load(handle)
+        ud.loadPlantInformation(savedPlantInfo)
+        createDefaultSolar()
+        createDefaultElectricityDemand()
+        #with open('savedDataModels.pickle', 'rb') as handle:
+        #    savedDataModels = pickle.load(handle)
+        #ud.loadDataModels(savedDataModels)
+        #ud.dataModels['Demand']['Future']['default']['model'].model = tf.keras.models.load_model('demandFutureDefault.keras')
+        #ud.dataModels['Solar']['Future']['default']['model'].model = tf.keras.models.load_model('solarFutureDefault.keras')
+        print("Save")
+    else:
+        raise Exception("Invalid load, must be True or False")
 
 def defaultSteppingPlantControl():
         #This algorithm operated by setting each plant to most efficent level within max ramp speed 
         elecData = ud.createElecData()
-        
-    
 
 def defaultPlantInformation():
 
@@ -401,3 +426,4 @@ def createDefaultElectricityDemand():
     print("Model Training")
     cm.createModel('Demand', 'Future', 'default')
     
+#initDefaultSimulation(load=False, save=True)

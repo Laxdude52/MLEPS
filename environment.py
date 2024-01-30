@@ -37,6 +37,8 @@ import time
 import logSimulation as los
 import copy
 import random
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 
 STARTTIME = 0
 solarModelInfo = ['default', 'Solar']
@@ -59,8 +61,10 @@ def getCurrentSolar(currentTime):
 
 #Get elecDemandPRed
 def fgetElecDemand(currentTime):
-    print(currentTime)
-    return ud.livePredict(currentTime, 'Demand', 'Future', 'default')
+    if(currentTime <= 5):
+        return ud.livePredict(currentTime, 'Demand', 'Future', 'default')
+    else:
+        return ud.livePredict(currentTime-5, 'Demand', 'Future', 'default')
 
 #Get real elec demand
 def rgetElecDemand(currentTime):
@@ -78,7 +82,8 @@ def resetSimulation():
     for plant in sim.plantList:
         ud.setPlantLevel(plant, ud.plantInformation[plant]["Min"])
     
-sim.initDefaultSimulation()
+#sim.initDefaultSimulation()
+sim.initDefaultSimulation(load=True)
 
 def getMostEfficent(rampDir, plant):
     mostEfficentVal = 90000000
@@ -201,12 +206,85 @@ def currentAlgorithm(currentTime):
         los.logCurStep(plant, newLevel,heat,heatPerOut)
     los.logCurFutStep(currentTime, tmpRealDemand, tmpRealSolar)
  
+'''
+xVals = []
+yVals = []
+fig = plt.figure()
+
+def liveGraph(xVals, yVals):
+    ax1 = fig.add_subplot(1,1,1)
+    xVals.append(currentTime)
+    yVals.append(los.logFutDict["totalProd"][currentTime])
+    xVals = xVals[-30:]
+    yVals = yVals[-30:]
+    ax1.clear()
+    ax1.plot(xVals, yVals)  
+    
+    plt.title("Production over time (Future)")
+
+'''
+xVals = []
+production = []
+predDemand = []
+realDemand = []
+plt.ion()
+figure, ax = plt.subplots(figsize=(10, 8))
+line1, = ax.plot(xVals, production, label="Total Production")
+line2, = ax.plot(xVals, predDemand, label="Predicted Electricity Demand")
+line3, = ax.plot(xVals, realDemand, label="Real Electricity Demand")
+def livePlot(xVals,production,predDemand,realDemand,currentTime):
+    xVals.append(currentTime)
+    production.append(los.logCurDict["totalProd"][currentTime])
+    print("CurPlotProd: " + str(los.logCurDict["totalProd"][currentTime]))
+    predDemand.append(los.logFutDict["elecDem"][currentTime])
+    realDemand.append(los.logCurDict["elecDem"][currentTime])
+
+    xVals = xVals[-50: ]
+    production = production[-50: ]
+    predDemand = predDemand[-50: ]
+    realDemand = realDemand[-50: ]
+
+    # Set x-axis limit to show a specific range of x values
+    ax.set_xlim(min(xVals), max(xVals))
+
+    # Set y-axis limit to show a specific range of y values
+    ax.set_ylim(30000, 400000)
+
+    print("Lengths - xVals:", len(xVals), "production:", len(production), "predDemand:", len(predDemand), "realDemand:", len(realDemand))
+
+    # Update x-data
+    line1.set_xdata(xVals)
+    line2.set_xdata(xVals)
+    line3.set_xdata(xVals)
+
+    # Update y-data
+    line1.set_ydata(production)
+    line2.set_ydata(predDemand)
+    line3.set_ydata(realDemand)
+
+    plt.title("Production, Predicted Demand, Real Demand")
+    plt.legend(loc="upper left")
+    figure.canvas.draw()
+    figure.canvas.flush_events()
+    #plt.pause(0.1)
+    #time.sleep(.1)
+    #https://www.youtube.com/watch?v=Ercd-Ip5PfQ
+    
 resetSimulation()
 currentTime = 0
-while True: 
-    futureAlgorithm(currentTime)
-    
-    currentAlgorithm(currentTime)    
+while True:
+    #try:
+        futureAlgorithm(currentTime)
 
-    currentTime = currentTime+1
-    #time.sleep(.05)
+        #ani = animation.FuncAnimation(fig, liveGraph, fargs=(xVals,yVals), interval=500)
+        #plt.show()
+        currentAlgorithm(currentTime)
+        livePlot(xVals, production, predDemand, realDemand, currentTime)
+
+        print("Current Time: " + str(currentTime))
+        currentTime = currentTime+1
+
+        #time.sleep(.1)
+    #except Exception as e:
+    #    print(e)
+    #    break
