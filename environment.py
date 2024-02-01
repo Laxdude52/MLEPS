@@ -37,6 +37,8 @@ import time
 import logSimulation as los
 import copy
 import random
+import warnings
+warnings.filterwarnings("ignore")
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
@@ -52,12 +54,12 @@ def getSpecPlantInformation(plant):
 
 #Get solar pred 
 def getSolarPred(currentTime):
-    print(currentTime)
+    #print(currentTime)
     return ud.livePredict(currentTime, 'Solar', 'Future', 'default')
 
 def getCurrentSolar(currentTime):
     data = ud.dataModels['Solar']['Simple']['default']['initData'].y_train.iloc[[currentTime]]
-    return data    
+    return data
 
 #Get elecDemandPRed
 def fgetElecDemand(currentTime):
@@ -121,11 +123,11 @@ def getMostEfficent(rampDir, plant):
                 mostEfficentSpeed = lowerBound
     else:
         print(rampDir)
-        pass
+        mostEfficentSpeed = currentLevel
         #raise Exception("No dir")
-    if(mostEfficentSpeed > plant["Max"]):
+    if(mostEfficentSpeed >= plant["Max"]):
         mostEfficentSpeed = plant["Max"]-1
-    elif(mostEfficentSpeed < plant["Min"]):
+    elif(mostEfficentSpeed <= plant["Min"]):
         mostEfficentSpeed = plant["Min"]+1
     #print("Plant new level: " + str(mostEfficentSpeed) + " Plant max: " + str(plant['Max']))
     heatRate = plant["efficencyData"].iloc[:,0][mostEfficentSpeed]
@@ -134,10 +136,10 @@ def getMostEfficent(rampDir, plant):
 def futureAlgorithm(currentTime):
     random.shuffle(sim.plantList)
     tmpElecDemandPred = int(fgetElecDemand(currentTime))
-    print("Pred elec demand: " + str(tmpElecDemandPred))
+    #print("Pred elec demand: " + str(tmpElecDemandPred))
     
     tmpSolarPred = int(getSolarPred(currentTime))
-    print("Pred solar out: " + str(tmpSolarPred))
+    #print("Pred solar out: " + str(tmpSolarPred))
     
     for plant in sim.plantList:
         tmpCurProd = getCurrentProduction()
@@ -193,15 +195,22 @@ def currentAlgorithm(currentTime):
             elif(tmpGap < 0):
                 newLevel = tmpPlantInfo['CurrentLevel'] - tmpPlantInfo['LeftRamp']
             else:
-                pass
-        if(newLevel > tmpPlantInfo["Max"]):
+                newLevel = tmpPlantInfo['CurrentLevel']
+        if(newLevel >= tmpPlantInfo["Max"]):
             newLevel = tmpPlantInfo["Max"]-1
-        elif(newLevel < tmpPlantInfo["Min"]):
+        elif(newLevel <= tmpPlantInfo["Min"]):
             newLevel = tmpPlantInfo["Min"]+1
         ud.setPlantLevel(plant, newLevel)
         ud.resetPlantRampLeft(plant)
         #print("Live level: " + str(getSpecPlantInformation(plant)["CurrentLevel"]))
-        heat = tmpPlantInfo["efficencyData"].iloc[:,0][newLevel]
+        try:
+            heat = tmpPlantInfo["efficencyData"].iloc[:,0][newLevel]
+        except Exception as e:
+            print(e)
+            print(newLevel)
+            print(tmpPlantInfo['Max'])
+            print(plant)
+            Exception(e)
         heatPerOut = tmpPlantInfo["efficencyData"].iloc[:,1][newLevel]
         los.logCurStep(plant, newLevel,heat,heatPerOut)
     los.logCurFutStep(currentTime, tmpRealDemand, tmpRealSolar)
@@ -239,18 +248,23 @@ def livePlot(xVals,production,predDemand,realDemand,currentTime):
     predDemand.append(los.logFutDict["elecDem"][currentTime])
     realDemand.append(los.logCurDict["elecDem"][currentTime])
 
+    '''
     xVals = xVals[-72: ]
     production = production[-72: ]
     predDemand = predDemand[-72: ]
     realDemand = realDemand[-72: ]
+    '''
 
     # Set x-axis limit to show a specific range of x values
-    ax.set_xlim(min(xVals), max(xVals))
+    if(currentTime <= 72):
+        ax.set_xlim(min(xVals), max(xVals))
+    else:
+        ax.set_xlim(currentTime - 72, currentTime)
 
     # Set y-axis limit to show a specific range of y values
     ax.set_ylim(0, 4000)
 
-    print("Lengths - xVals:", len(xVals), "production:", len(production), "predDemand:", len(predDemand), "realDemand:", len(realDemand))
+    #print("Lengths - xVals:", len(xVals), "production:", len(production), "predDemand:", len(predDemand), "realDemand:", len(realDemand))
 
     # Update x-data
     line1.set_xdata(xVals)
@@ -262,7 +276,7 @@ def livePlot(xVals,production,predDemand,realDemand,currentTime):
     line2.set_ydata(predDemand)
     line3.set_ydata(realDemand)
 
-    plt.title("Production, Predicted Demand, Real Demand (MWh")
+    plt.title("Production, Predicted Demand, Real Demand (MWh)")
     plt.legend(loc="upper left")
     figure.canvas.draw()
     figure.canvas.flush_events()
@@ -272,7 +286,7 @@ def livePlot(xVals,production,predDemand,realDemand,currentTime):
     
 resetSimulation()
 currentTime = 0
-while True:
+while input != "s":
     #try:
         futureAlgorithm(currentTime)
 
@@ -281,7 +295,7 @@ while True:
         currentAlgorithm(currentTime)
         livePlot(xVals, production, predDemand, realDemand, currentTime)
 
-        print("Current Time: " + str(currentTime))
+        #print("Current Time: " + str(currentTime))
         currentTime = currentTime+1
 
         #time.sleep(.1)

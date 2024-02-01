@@ -128,57 +128,57 @@ def defaultPlantInformation():
 
     prime1Info = dict()
     prime1Info.update({"Max":625})
-    prime1Info.update({"Min":62})
-    prime1Info.update({"MaxRamp":62})
-    prime1Info.update({"LeftRamp":62})
-    prime1Info.update({"CurrentLevel":62})
+    prime1Info.update({"Min":45})
+    prime1Info.update({"MaxRamp":125})
+    prime1Info.update({"LeftRamp":125})
+    prime1Info.update({"CurrentLevel":125})
     ud.newPlant("Primemover 1", prime1Info)
      
     prime2Info = dict()
-    prime2Info.update({"Max":590})
-    prime2Info.update({"Min":59})
-    prime2Info.update({"MaxRamp":59})
-    prime2Info.update({"LeftRamp":59})
-    prime2Info.update({"CurrentLevel":59})
+    prime2Info.update({"Max":790})
+    prime2Info.update({"Min":55})
+    prime2Info.update({"MaxRamp":197})
+    prime2Info.update({"LeftRamp":197})
+    prime2Info.update({"CurrentLevel":197})
     ud.newPlant("Primemover 2", prime2Info)
     
     prime3Info = dict()
-    prime3Info.update({"Max":343})
-    prime3Info.update({"Min":34})
-    prime3Info.update({"MaxRamp":34})
-    prime3Info.update({"LeftRamp":34})
-    prime3Info.update({"CurrentLevel":34})
+    prime3Info.update({"Max":645})
+    prime3Info.update({"Min":35})
+    prime3Info.update({"MaxRamp":130})
+    prime3Info.update({"LeftRamp":130})
+    prime3Info.update({"CurrentLevel":130})
     ud.newPlant("Primemover 3", prime3Info)
     
     steam1Info = dict()
     steam1Info.update({"Max":625})
     steam1Info.update({"Min":62})
-    steam1Info.update({"MaxRamp":62})
-    steam1Info.update({"LeftRamp":62})
+    steam1Info.update({"MaxRamp":320})
+    steam1Info.update({"LeftRamp":320})
     steam1Info.update({"CurrentLevel":62})
     ud.newPlant("Steam 1", steam1Info)
     
     steam2Info = dict()
     steam2Info.update({"Max":430})
-    steam2Info.update({"Min":43})
-    steam2Info.update({"MaxRamp":43})
-    steam2Info.update({"LeftRamp":43})
-    steam2Info.update({"CurrentLevel":43})
+    steam2Info.update({"Min":45})
+    steam2Info.update({"MaxRamp":250})
+    steam2Info.update({"LeftRamp":250})
+    steam2Info.update({"CurrentLevel":250})
     ud.newPlant("Steam 2", steam2Info)
     
     turbine1Info = dict()
     turbine1Info.update({"Max":330})
-    turbine1Info.update({"Min":33})
-    turbine1Info.update({"MaxRamp":33})
-    turbine1Info.update({"LeftRamp":33})
+    turbine1Info.update({"Min":35})
+    turbine1Info.update({"MaxRamp":300})
+    turbine1Info.update({"LeftRamp":300})
     turbine1Info.update({"CurrentLevel":33})
     ud.newPlant("Turbine 1", turbine1Info)
     
     turbine2Info = dict()
-    turbine2Info.update({"Max":450})
+    turbine2Info.update({"Max":350})
     turbine2Info.update({"Min":45})
-    turbine2Info.update({"MaxRamp":45})
-    turbine2Info.update({"LeftRamp":45})
+    turbine2Info.update({"MaxRamp":300})
+    turbine2Info.update({"LeftRamp":300})
     turbine2Info.update({"CurrentLevel":45})
     ud.newPlant("Turbine 2", turbine2Info)
     
@@ -297,7 +297,7 @@ def createDefualtPlantModels():
         tmpModelPack.update({"model":gam})
         ud.updateModelPack(tmpModelPack, plantList[i], "Simple", "default")
         
-        print("Train model") 
+        print("Train model")
         cm.createModel(plantList[i], "Simple", "default")
 
 def createDefaultSolar():
@@ -305,7 +305,7 @@ def createDefaultSolar():
     ud.addGroup("default", "Solar", "Future")
     ud.addGroup("default", "Solar", "Simple")
     
-    testFiles = ["BS_2016.csv", "BS_2017.csv", "BS_2018.csv", "BS_2019.csv", "BS_2020.csv", "BS_2021.csv", "BS_2022.csv"]
+    testFiles = ["BS_2016.csv", "BS_2017.csv", "BS_2018.csv", "BS_2019.csv", "BS_2020.csv", "BS_2021.csv"]
     testList = ud.createList(testFiles)
     tmpSolar = copy.deepcopy(testList[0]['kW'])
     #for i in range(len(testList)):
@@ -325,7 +325,7 @@ def createDefaultSolar():
     columns.update({'X': ['Timestamp', 'POAI', 'TmpF']})
     dataPack.update({"columns":columns})
     
-    dataPack.update({"aboveVal": 'na'})
+    dataPack.update({"aboveVal": 15})
     dataPack.update({"belowVal": 0})
     dataPack.update({"naDecision":'mean'})
     dataPack.update({"testSize":0.3})
@@ -336,7 +336,8 @@ def createDefaultSolar():
     dataPack.update({'notLaggedVars':['Hour', 'Month']})
     dataPack.update({'numPastSteps':5})
     dataPack.update({'numFutureSteps':1})
-    dataPack.update({"scaleVal":"na"})
+    tmpScaleVal = [0,10]
+    dataPack.update({'scaleVal':tmpScaleVal})
     
     ud.updateDataPack(dataPack, "Solar", "Future", "default")
     ud.updateDataPack(dataPack, "Solar", "Simple", "default")
@@ -363,9 +364,9 @@ def createDefaultSolar():
     cm.createModel('Solar', 'Future', 'default')
     
     #Plot Loss
-    print("Plot loss")
-    ud.dataModels['Solar']['Future']['default']['model'].plot_loss()
-    
+    #print("Plot loss")
+    #ud.dataModels['Solar']['Future']['default']['model'].plot_loss()
+
 def createDefaultElectricityDemand():
     ud.addGoal("Demand")
     ud.addGroup("default", "Demand", "Future")

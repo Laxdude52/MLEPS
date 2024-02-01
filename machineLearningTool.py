@@ -59,7 +59,7 @@ class data:
                 try:
                     test = pd.DataFrame(df)
                 except:
-                    warnings.warn(("Dataframe: " + str(df) + "can NOT be conerted to a datraframe"))
+                    warnings.warn(("Dataframe: " + str(df) + "can NOT be conerted to a dataframe"))
                     self.valid = False
             if not self.valid:
                 raise Exception("Invalid Input")
@@ -74,7 +74,7 @@ class data:
         #Come back and fix this, there is an issue where dataframes are being eltered incorrectly
         #The try except just coveres up this issue
         try:
-            tmpdf['Timestamp'] = pd.to_datetime(tmpdf['Timestamp'])
+            tmpdf['Timestamp'] = pd.to_datetime(tmpdf['Timestamp']).sort_values()
             self.filtered = tmpdf.resample(timeframe, on='Timestamp').sum()
         except KeyError as e:
             warnings.warn(e)
@@ -132,8 +132,9 @@ class data:
         #return self.filtered
         for (columnName, columnData) in self.filtered.items():
             print(columnName)
-            if(naDecision == 'zero'):
+            if not (columnName.upper() == "TIMESTAMP"):
                 self.filtered[columnName] = pd.to_numeric(self.filtered[columnName], errors='coerce')
+            if(naDecision == 'zero'):
                 self.filtered[columnName].fillna(0, inplace=True)
             try:
                 tmpX = copy.deepcopy(self.filtered['megawatthours'])
@@ -152,7 +153,7 @@ class data:
                     print("Start Below")
                     self.filtered.loc[self.filtered[columnName] < belowVal, columnName] = belowVal
                     print("Below done")
-                if(aboveVal != 'na'): 
+                if(aboveVal != 'na'):
                     print("Start Above")
                     self.filtered.loc[self.filtered[columnName] > aboveVal, columnName] = aboveVal
                     print("Above done")
