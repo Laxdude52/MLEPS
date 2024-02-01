@@ -235,20 +235,20 @@ line3, = ax.plot(xVals, realDemand, label="Real Electricity Demand")
 def livePlot(xVals,production,predDemand,realDemand,currentTime):
     xVals.append(currentTime)
     production.append(los.logCurDict["totalProd"][currentTime])
-    print("CurPlotProd: " + str(los.logCurDict["totalProd"][currentTime]))
+    #print("CurPlotProd: " + str(los.logCurDict["totalProd"][currentTime]))
     predDemand.append(los.logFutDict["elecDem"][currentTime])
     realDemand.append(los.logCurDict["elecDem"][currentTime])
 
-    xVals = xVals[-50: ]
-    production = production[-50: ]
-    predDemand = predDemand[-50: ]
-    realDemand = realDemand[-50: ]
+    xVals = xVals[-72: ]
+    production = production[-72: ]
+    predDemand = predDemand[-72: ]
+    realDemand = realDemand[-72: ]
 
     # Set x-axis limit to show a specific range of x values
     ax.set_xlim(min(xVals), max(xVals))
 
     # Set y-axis limit to show a specific range of y values
-    ax.set_ylim(30000, 400000)
+    ax.set_ylim(0, 4000)
 
     print("Lengths - xVals:", len(xVals), "production:", len(production), "predDemand:", len(predDemand), "realDemand:", len(realDemand))
 
@@ -262,7 +262,7 @@ def livePlot(xVals,production,predDemand,realDemand,currentTime):
     line2.set_ydata(predDemand)
     line3.set_ydata(realDemand)
 
-    plt.title("Production, Predicted Demand, Real Demand")
+    plt.title("Production, Predicted Demand, Real Demand (MWh")
     plt.legend(loc="upper left")
     figure.canvas.draw()
     figure.canvas.flush_events()

@@ -144,6 +144,10 @@ class data:
                 print(e)
                 print("Not a model heat rate dataset")
             if(isinstance(columnData.values[0], numbers.Number)):
+                try:
+                    self.filtered[columnName] = pd.to_numeric(self.filtered[columnName], errors='coerce')
+                except Exception as e:
+                    print("Could not make a numeric column")
                 if(belowVal != 'na'):
                     print("Start Below")
                     self.filtered.loc[self.filtered[columnName] < belowVal, columnName] = belowVal

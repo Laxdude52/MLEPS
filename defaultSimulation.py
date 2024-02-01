@@ -127,59 +127,59 @@ def defaultSteppingPlantControl():
 def defaultPlantInformation():
 
     prime1Info = dict()
-    prime1Info.update({"Max":62500})
-    prime1Info.update({"Min":6250})
-    prime1Info.update({"MaxRamp":6250})
-    prime1Info.update({"LeftRamp":6250})
-    prime1Info.update({"CurrentLevel":6250})
+    prime1Info.update({"Max":625})
+    prime1Info.update({"Min":62})
+    prime1Info.update({"MaxRamp":62})
+    prime1Info.update({"LeftRamp":62})
+    prime1Info.update({"CurrentLevel":62})
     ud.newPlant("Primemover 1", prime1Info)
      
     prime2Info = dict()
-    prime2Info.update({"Max":49000})
-    prime2Info.update({"Min":4900})
-    prime2Info.update({"MaxRamp":4900})
-    prime2Info.update({"LeftRamp":4900})
-    prime2Info.update({"CurrentLevel":4900})
+    prime2Info.update({"Max":590})
+    prime2Info.update({"Min":59})
+    prime2Info.update({"MaxRamp":59})
+    prime2Info.update({"LeftRamp":59})
+    prime2Info.update({"CurrentLevel":59})
     ud.newPlant("Primemover 2", prime2Info)
     
     prime3Info = dict()
-    prime3Info.update({"Max":34300})
-    prime3Info.update({"Min":3430})
-    prime3Info.update({"MaxRamp":3430})
-    prime3Info.update({"LeftRamp":3430})
-    prime3Info.update({"CurrentLevel":3430})
+    prime3Info.update({"Max":343})
+    prime3Info.update({"Min":34})
+    prime3Info.update({"MaxRamp":34})
+    prime3Info.update({"LeftRamp":34})
+    prime3Info.update({"CurrentLevel":34})
     ud.newPlant("Primemover 3", prime3Info)
     
     steam1Info = dict()
-    steam1Info.update({"Max":62500})
-    steam1Info.update({"Min":6250})
-    steam1Info.update({"MaxRamp":6250})
-    steam1Info.update({"LeftRamp":6250})
-    steam1Info.update({"CurrentLevel":6250})
+    steam1Info.update({"Max":625})
+    steam1Info.update({"Min":62})
+    steam1Info.update({"MaxRamp":62})
+    steam1Info.update({"LeftRamp":62})
+    steam1Info.update({"CurrentLevel":62})
     ud.newPlant("Steam 1", steam1Info)
     
     steam2Info = dict()
-    steam2Info.update({"Max":43000})
-    steam2Info.update({"Min":4300})
-    steam2Info.update({"MaxRamp":4300})
-    steam2Info.update({"LeftRamp":4300})
-    steam2Info.update({"CurrentLevel":4300})
+    steam2Info.update({"Max":430})
+    steam2Info.update({"Min":43})
+    steam2Info.update({"MaxRamp":43})
+    steam2Info.update({"LeftRamp":43})
+    steam2Info.update({"CurrentLevel":43})
     ud.newPlant("Steam 2", steam2Info)
     
     turbine1Info = dict()
-    turbine1Info.update({"Max":22000})
-    turbine1Info.update({"Min":2200})
-    turbine1Info.update({"MaxRamp":2200})
-    turbine1Info.update({"LeftRamp":2200})
-    turbine1Info.update({"CurrentLevel":2200})
+    turbine1Info.update({"Max":330})
+    turbine1Info.update({"Min":33})
+    turbine1Info.update({"MaxRamp":33})
+    turbine1Info.update({"LeftRamp":33})
+    turbine1Info.update({"CurrentLevel":33})
     ud.newPlant("Turbine 1", turbine1Info)
     
     turbine2Info = dict()
-    turbine2Info.update({"Max":45000})
-    turbine2Info.update({"Min":4500})
-    turbine2Info.update({"MaxRamp":4500})
-    turbine2Info.update({"LeftRamp":4500})
-    turbine2Info.update({"CurrentLevel":4500})
+    turbine2Info.update({"Max":450})
+    turbine2Info.update({"Min":45})
+    turbine2Info.update({"MaxRamp":45})
+    turbine2Info.update({"LeftRamp":45})
+    turbine2Info.update({"CurrentLevel":45})
     ud.newPlant("Turbine 2", turbine2Info)
     
     print("Creating heat rate map")
@@ -225,45 +225,38 @@ def createDefualtPlantModels():
     prime1List[0].iloc[:,0] = pd.to_numeric(prime1List[0].iloc[:,0],errors='coerce')
     prime1List[0].iloc[:,1] = pd.to_numeric(prime1List[0].iloc[:,1],errors='coerce')
     #prime1List[0] = prime1List[0].dropna()
-    prime1List[0].iloc[:,0] = prime1List[0].iloc[:,0]*1000
-    
+
     prime2List = ud.createList(prime2File)
     prime2List[0].iloc[:,0] = pd.to_numeric(prime2List[0].iloc[:,0],errors='coerce')
     prime2List[0].iloc[:,1] = pd.to_numeric(prime2List[0].iloc[:,1],errors='coerce')
     #prime2List[0] = prime2List[0].dropna()
-    prime2List[0].iloc[:,0] = prime2List[0].iloc[:,0]*1000
-    
+
     prime3List = ud.createList(prime3File)
     prime3List[0].iloc[:,0] = pd.to_numeric(prime3List[0].iloc[:,0],errors='coerce')
     prime3List[0].iloc[:,1] = pd.to_numeric(prime3List[0].iloc[:,1],errors='coerce')
     #prime3List[0] = prime3List[0].dropna()
-    prime3List[0].iloc[:,0] = prime3List[0].iloc[:,0]*1000
-    
+
     #prime4List = ud.createList(prime4File)
     steam1List = ud.createList(steam1File)
     steam1List[0].iloc[:,0] = pd.to_numeric(steam1List[0].iloc[:,0],errors='coerce')
     steam1List[0].iloc[:,1] = pd.to_numeric(steam1List[0].iloc[:,1],errors='coerce')
     #steam1List[0] = steam1List[0].dropna()
-    steam1List[0].iloc[:,0] = steam1List[0].iloc[:,0]*1000
-    
+
     steam2List = ud.createList(steam2File)
     steam2List[0].iloc[:,0] = pd.to_numeric(steam2List[0].iloc[:,0],errors='coerce')
     steam2List[0].iloc[:,1] = pd.to_numeric(steam2List[0].iloc[:,1],errors='coerce')
     #steam2List[0] = steam2List[0].dropna()
-    steam2List[0].iloc[:,0] = steam2List[0].iloc[:,0]*1000
-    
+
     turbine1List = ud.createList(turbine1File)
     turbine1List[0].iloc[:,0] = pd.to_numeric(turbine1List[0].iloc[:,0],errors='coerce')
     turbine1List[0].iloc[:,1] = pd.to_numeric(turbine1List[0].iloc[:,1],errors='coerce')
     #turbine1List[0] = turbine1List[0].dropna()
-    turbine1List[0].iloc[:,0] = turbine1List[0].iloc[:,0]*1000
-    
+
     turbine2List = ud.createList(turbine2File)
     turbine2List[0].iloc[:,0] = pd.to_numeric(turbine2List[0].iloc[:,0],errors='coerce')
     turbine2List[0].iloc[:,1] = pd.to_numeric(turbine2List[0].iloc[:,1],errors='coerce')
     #turbine2List[0] = turbine2List[0].dropna()
-    turbine2List[0].iloc[:,0] = turbine2List[0].iloc[:,0]*1000
-    
+
     ud.updateDataList(prime1List, "Primemover 1", 'Simple', 'default')
     ud.updateDataList(prime2List, "Primemover 2", 'Simple', 'default')
     ud.updateDataList(prime3List, "Primemover 3", 'Simple', 'default')
@@ -312,9 +305,14 @@ def createDefaultSolar():
     ud.addGroup("default", "Solar", "Future")
     ud.addGroup("default", "Solar", "Simple")
     
-    testFiles = ["BS_2016.csv", "BS_2017.csv", "BS_2018.csv"]
+    testFiles = ["BS_2016.csv", "BS_2017.csv", "BS_2018.csv", "BS_2019.csv", "BS_2020.csv", "BS_2021.csv", "BS_2022.csv"]
     testList = ud.createList(testFiles)
-    
+    tmpSolar = copy.deepcopy(testList[0]['kW'])
+    #for i in range(len(testList)):
+    #    testList[i]['kW'] = testList[i]['kW'].div(1000)
+
+    #print(testList[0]['kW'])
+
     ud.updateDataList(testList, "Solar", "Future", 'default')
     ud.updateDataList(testList, "Solar", "Simple", 'default')
      
@@ -375,10 +373,13 @@ def createDefaultElectricityDemand():
     
     testFiles = ["elecDemandFinal.csv"]
     testList = ud.createList(testFiles)
-    
+    #Fix previous error of uncreasing magnitude of elec demand, true value is in megawatt hours
+    #for i in range(len(testList)):
+    #    testList[i]['DrawkW'] = testList[i]['DrawkW'].div(1000)
+
     ud.updateDataList(testList, "Demand", "Future", 'default')
     ud.updateDataList(testList, "Demand", "Simple", 'default')
-     
+
     #Prepare data pack
     dataPack = dict()
     
@@ -399,7 +400,7 @@ def createDefaultElectricityDemand():
     dataPack.update({'notLaggedVars':['Hour', 'Month', 'snwd', 'tmax', 'HolidayPresent']})
     dataPack.update({'numPastSteps':5}) 
     dataPack.update({'numFutureSteps':1})
-    tmpScaleVal = [0,400000]
+    tmpScaleVal = [0,4000]
     dataPack.update({'scaleVal':tmpScaleVal})
     
     ud.updateDataPack(dataPack, "Demand", "Future", "default")
@@ -421,7 +422,7 @@ def createDefaultElectricityDemand():
     modelPack.update({"iterators":15})
     
     ud.updateModelPack(modelPack, "Demand", "Future", "default")
-    
+
     #Train Model
     print("Model Training")
     cm.createModel('Demand', 'Future', 'default')
