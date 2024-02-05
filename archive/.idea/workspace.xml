@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="e3c13f5d-7a20-4fe6-9028-f17e78b95c40" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/../.idea/MLEPS.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../.idea/MLEPS.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../BS_2021 - Backup.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../BS_2022.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Figure_1.eps" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Figure_1.jpeg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Figure_1.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Figure_1.raw" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Figure_1.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Figure_1.webp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../OldCreateModels.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../V2Gui.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../controlModule.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../demandFutureDefault.keras" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../elecDemandFinal - Backup.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../failedRun.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../featureTest.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../finalGraph.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../guiDriver.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../liveStepAlgorithm.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../manageModels.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../solarFutureDefault.keras" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../untitled4.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../untitled5.py" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 8
+}</component>
+  <component name="ProjectId" id="2brqhJDiEsH620epXwV20gqpsD2" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "archive",
+    "ignore.virus.scanning.warn.message": "true",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-python-sdk-5a2391486177-2887949eec09-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-233.13763.11" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="e3c13f5d-7a20-4fe6-9028-f17e78b95c40" name="Changes" comment="" />
+      <created>1706983662981</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1706983662981</updated>
+      <workItem from="1706983664240" duration="472000" />
+      <workItem from="1706984146962" duration="80000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>
