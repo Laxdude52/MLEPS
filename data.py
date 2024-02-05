@@ -4,6 +4,8 @@ Created on Tue Jul 18 17:02:41 2023
 
 @author: School Account
 """
+import numpy as np
+
 '''
 Define the data structure layout:
     
@@ -21,6 +23,7 @@ dataModels -> goal -> modelType (simple/future) -> group -> {
 import pandas as pd
 import warnings 
 import copy
+import keras
 
 dataModels = dict()
 
@@ -64,14 +67,100 @@ def loadDataModels(data):
     global dataModels
     dataModels = data
 
+
+def prepSaveData():
+    tmpData =  dict()
+    layer2 = dict()
+    layer3 = dict()
+    layer4 = dict()
+    delist = [[0]*4]
+    delistCol = 0
+    #dataModels.update({'redundant': dict()})
+    for key1 in dataModels.keys():
+        print("Key1: ", key1)
+        print(dataModels.keys())
+        tmpData.update({key1:layer2})
+        for key2 in dataModels[key1].keys():
+            layer2.update({key2:layer3})
+            for key3 in dataModels[key1][key2].keys():
+                layer3.update({key3: layer4})
+                for key4 in dataModels[key1][key2][key3].keys():
+                    if not (str(key4) == 'model'):
+                        newData = dataModels[key1][key2][key3][key4]
+                        layer4.update({key4:newData})
+                    else:
+                        if (type(dataModels[key1][key2][key3]['model']) != str):
+                            '''
+                                delist[delistCol][0] = key1
+                                delist[delistCol][1] = key2
+                                delist[delistCol][2] = key3
+                                delist[delistCol][3] = key4
+                                delistCol = delistCol+1
+                                delist.append([0,0,0,0])
+                            '''
+                            keras.backend.clear_session()
+                            #del dataModels[key1][key2][key3]['model'].model
+                            dataModels[key1][key2][key3]['model'].deleteModel()
+                            keras.backend.clear_session()
+                            newData = dataModels[key1][key2][key3][key4]
+                            layer4.update({key4: newData})
+                        else:
+                            newData = dataModels[key1][key2][key3][key4]
+                            layer4.update({key4: newData})
+                layer3.update({key3: layer4})
+            layer2.update({key2: layer3})
+        tmpData.update({key1: layer2})
+        '''
+        i=0
+        while (len(delist) != 0):
+            if(delist[0][i] != 0):
+                del dataModels[delist[i][0]][delist[i][1]][delist[i][2]][delist[i][3]].model
+                newData = copy.deepcopy(dataModels[delist[i][0]][delist[i][1]][delist[i][2]][delist[i][3]])
+                layer4.update({delist[i][3]: newData})
+                layer3.update({delist[i][2]: layer4})
+                layer2.update({delist[i][1]: layer3})
+                tmpData.update({delist[i][0]: layer2})
+            delist = np.delete(delist, i, axis=0)
+            '''
+    return tmpData
+'''
+def prepSaveData():
+    for key1 in dataModels.keys():
+        for key2 in dataModels[key1].keys():
+            for key3 in dataModels[key1][key2].keys():
+                for key4 in dataModels[key1][key2][key3].keys():
+                        if(key4 == 'model'):
+                            try:
+                                del dataModels[key1][key2][key3][key4].model
+                            except:
+                                print("No model at: ", key1, key2, key3, key4)
+    return dataModels
+'''
 def predict(X, goal, modelType, group): 
     val = dataModels[goal][modelType][group]['model'].model.predict(X)
     return val
 
-def livePredict(timeStamp, goal, modelType, group):
-    X_train = dataModels[goal][modelType][group]['initData'].X_train 
-    X = X_train.iloc[[timeStamp]]
-    val = dataModels[goal][modelType][group]['model'].model.predict(X)
+def livePredict(timeStamp, goal, modelType, group, numPast=0):
+    if(numPast == 0):
+        try:
+            X_train = dataModels[goal][modelType][group]['initData'].X_train
+            X = X_train.iloc[[timeStamp]]
+            val = dataModels[goal][modelType][group]['model'].model.predict(X)
+        except:
+            X_test = dataModels[goal][modelType][group]['initData'].X_test
+            X = X_test.iloc[[timeStamp]]
+            val = dataModels[goal][modelType][group]['model'].model.predict(X)
+    else:
+        X_train = dataModels[goal][modelType][group]['initData'].X_train
+        X_test = dataModels[goal][modelType][group]['initData'].X_test
+        val = pd.DataFrame()
+        for i in range(-numPast,0):
+            try:
+                tmpVal = X_train.iloc[[i]]
+                val.Append(tmpVal)
+            except:
+                tmpVal = X_test.iloc[[i]]
+                val.Append(tmpVal)
     return val 
 
 def createList(files):

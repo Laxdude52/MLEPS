@@ -33,6 +33,7 @@ Do:
 
 import data as ud
 import defaultSimulation as sim
+import tensorflow as tf
 import time
 import logSimulation as los
 import copy
@@ -42,7 +43,8 @@ warnings.filterwarnings("ignore")
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
-STARTTIME = 0
+tf.saved_model.LoadOptions(experimental_io_device = '/job:localhost')
+MAXTIME = 44316
 solarModelInfo = ['default', 'Solar']
 
 #Get current plant levels + max ramp up/down
@@ -55,22 +57,28 @@ def getSpecPlantInformation(plant):
 #Get solar pred 
 def getSolarPred(currentTime):
     #print(currentTime)
-    return ud.livePredict(currentTime, 'Solar', 'Future', 'default')
+    return ud.livePredict(currentTime, 'Solar', 'Future', 'default', numPast=5)
 
 def getCurrentSolar(currentTime):
-    data = ud.dataModels['Solar']['Simple']['default']['initData'].y_train.iloc[[currentTime]]
+    try:
+        data = ud.dataModels['Solar']['Simple']['default']['initData'].y_train.iloc[[currentTime]]
+    except:
+        data = ud.dataModels['Solar']['Simple']['default']['initData'].y_test.iloc[[currentTime]]
     return data
 
 #Get elecDemandPRed
 def fgetElecDemand(currentTime):
-    if(currentTime <= 5):
-        return ud.livePredict(currentTime, 'Demand', 'Future', 'default')
-    else:
-        return ud.livePredict(currentTime-5, 'Demand', 'Future', 'default')
+    #if(currentTime <= 5):
+        return ud.livePredict(currentTime, 'Demand', 'Future', 'default', numPast=5)
+    #else:
+    #    return ud.livePredict(currentTime-5, 'Demand', 'Future', 'default')
 
 #Get real elec demand
 def rgetElecDemand(currentTime):
-    data = ud.dataModels['Demand']['Simple']['default']['initData'].y_train.iloc[[currentTime]]
+    try:
+        data = ud.dataModels['Demand']['Simple']['default']['initData'].y_train.iloc[[currentTime]]
+    except:
+        data = ud.dataModels['Demand']['Simple']['default']['initData'].y_test.iloc[[currentTime]]
     return data
 
 def getCurrentProduction():
@@ -286,19 +294,11 @@ def livePlot(xVals,production,predDemand,realDemand,currentTime):
     
 resetSimulation()
 currentTime = 0
-while input != "s":
-    #try:
-        futureAlgorithm(currentTime)
+while currentTime != MAXTIME:
+    futureAlgorithm(currentTime)
 
-        #ani = animation.FuncAnimation(fig, liveGraph, fargs=(xVals,yVals), interval=500)
-        #plt.show()
-        currentAlgorithm(currentTime)
-        livePlot(xVals, production, predDemand, realDemand, currentTime)
+    currentAlgorithm(currentTime)
+    livePlot(xVals, production, predDemand, realDemand, currentTime)
 
-        #print("Current Time: " + str(currentTime))
-        currentTime = currentTime+1
-
-        #time.sleep(.1)
-    #except Exception as e:
-    #    print(e)
-    #    break
+    #print("Current Time: " + str(currentTime))
+    currentTime = currentTime+1

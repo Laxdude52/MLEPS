@@ -61,6 +61,7 @@ Controller:
                 100
             
 '''
+tf.saved_model.LoadOptions(experimental_io_device = '/job:localhost')
 plantList = list()
 plantList.append("Primemover 1")
 plantList.append("Primemover 2")
@@ -96,27 +97,35 @@ def initDefaultSimulation(load, save=False):
         ud.defPredict("Demand", "Future", 'default')
         if save:
             #pickle.dump(ud.plantInformation, open("savedPlantInformation.pk1", 'wb'))
+
             with open('savedPlantInformation.pickle', 'wb') as handle:
                 pickle.dump(ud.plantInformation, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            ud.dataModels['Demand']['Future']['default']['model'].model.save('demandFutureDefault.keras')
+            ud.dataModels['Solar']['Future']['default']['model'].model.save('solarFutureDefault.keras')
+            print("Saved tf models")
+            #saveData = ud.prepSaveData()
             #with open('savedDataModels.pickle', 'wb') as handle:
-            #    pickle.dump(ud.dataModels, handle, protocol=pickle.HIGHEST_PROTOCOL)
-            #model.save('my_model.keras')
-            #ud.dataModels['Demand']['Future']['default']['model'].model.save('demandFutureDefault.keras')
-            #ud.dataModels['Solar']['Future']['default']['model'].model.save('solarFutureDefault.keras')
+            #    pickle.dump(ud.dataModels, handle)
+            pickle.dumps(ud.plantInformation, 'savedDataModels.pickle')
+            print("Saved all data")
+
     elif load:
         #savedPlantInfo = pickle.load(open("savedPlantInformation.pk1", 'rb'))
         #ud.plantInformation = savedPlantInfo
         with open('savedPlantInformation.pickle', 'rb') as handle:
             savedPlantInfo = pickle.load(handle)
+        #savedPlantInfo = pickle.load('savedPlantInformation.pickle', errors='ignore')
         ud.loadPlantInformation(savedPlantInfo)
-        createDefaultSolar()
-        createDefaultElectricityDemand()
+
         #with open('savedDataModels.pickle', 'rb') as handle:
-        #    savedDataModels = pickle.load(handle)
-        #ud.loadDataModels(savedDataModels)
-        #ud.dataModels['Demand']['Future']['default']['model'].model = tf.keras.models.load_model('demandFutureDefault.keras')
-        #ud.dataModels['Solar']['Future']['default']['model'].model = tf.keras.models.load_model('solarFutureDefault.keras')
-        print("Save")
+        #    savedDataModels = pickle.load(handle, errors='ignore')
+        savedDataModels = pickle.loads('savedDataModels.pickle', errors='ignore')
+        ud.loadDataModels(savedDataModels)
+
+        ud.dataModels['Demand']['Future']['default']['model'].model = tf.keras.models.load_model('demandFutureDefault.keras')
+        ud.dataModels['Solar']['Future']['default']['model'].model = tf.keras.models.load_model('solarFutureDefault.keras')
+
+        print("Loaded")
     else:
         raise Exception("Invalid load, must be True or False")
 
@@ -278,7 +287,7 @@ def createDefualtPlantModels():
     dataPack.update({"belowVal": 0})
     dataPack.update({"naDecision":'zero'})
     dataPack.update({"testSize":0.3})
-    dataPack.update({"validSize":0.1})
+    dataPack.update({"validSize":0})
     dataPack.update({"scaleVal":'na'})
     dataPack.update({"aggTime":'na'})
 
@@ -329,7 +338,7 @@ def createDefaultSolar():
     dataPack.update({"belowVal": 0})
     dataPack.update({"naDecision":'mean'})
     dataPack.update({"testSize":0.3})
-    dataPack.update({"validSize":0.1})
+    dataPack.update({"validSize":0})
     dataPack.update({"timeCols":['Hour', 'Month']})
     dataPack.update({"aggTime":'H'})
     dataPack.update({'laggedVars':['kW', 'POAI', 'TmpF']})
@@ -394,7 +403,7 @@ def createDefaultElectricityDemand():
     dataPack.update({"belowVal": -100})
     dataPack.update({"naDecision":'mean'})
     dataPack.update({"testSize":0.3})
-    dataPack.update({"validSize":0.1})
+    dataPack.update({"validSize":0})
     dataPack.update({"timeCols":['Hour', 'Month']})
     dataPack.update({"aggTime":'H'})
     dataPack.update({'laggedVars':['DrawkW', 'tmin', 'snow', 'wt03', 'prcp']})
@@ -427,5 +436,5 @@ def createDefaultElectricityDemand():
     #Train Model
     print("Model Training")
     cm.createModel('Demand', 'Future', 'default')
-    
-#initDefaultSimulation(load=False, save=True)
+
+initDefaultSimulation(load=False, save=True)

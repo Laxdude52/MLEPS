@@ -74,7 +74,8 @@ class data:
         #Come back and fix this, there is an issue where dataframes are being eltered incorrectly
         #The try except just coveres up this issue
         try:
-            tmpdf['Timestamp'] = pd.to_datetime(tmpdf['Timestamp']).sort_values()
+            tmpdf['Timestamp'] = pd.to_datetime(tmpdf['Timestamp'])
+            tmpdf.sort_values(by='Timestamp', ascending=False, inplace=True)
             self.filtered = tmpdf.resample(timeframe, on='Timestamp').sum()
         except KeyError as e:
             warnings.warn(e)
@@ -275,6 +276,15 @@ class model:
         self.modelType = modelType
         self.searchDone = False
         self.isClusterModel = isClusterModel
+
+    def __getstate__(self):
+        """Return state values to be pickled."""
+        return (self.data, self.modelType, self.param_dist)
+
+    def __setstate__(self, state):
+        """Restore state from the unpickled state values."""
+        self.data, self.modelType, self.param_dist = state
+
     def searchCV(self, n_iter, cv, searchDsetSize):
         print("Searching (CV)")
         if(self.param_dist != 'NA'):
@@ -312,9 +322,12 @@ class model:
             self.model = self.model.fit(self.Xtrain, self.Ytrain)
         elif(self.modelType.upper() == 'DNN'):
             print("Training DNN")
-            self.es = tf.keras.callbacks.EarlyStopping(patience=10)
-            self.history = self.model.fit(self.data.X_train[0:int(len(self.data.X_train)/trainingDsetSize)], self.data.y_train[0:int(len(self.data.y_train)/trainingDsetSize)], epochs=iterators, callbacks=[self.es], validation_data=(self.data.X_valid, self.data.y_valid))
-        #Models to make: BIRCH, K_Means, Spectral, Mixture of Gaussians, Maybe: Optics 
+            if(len(self.data.X_valid != 0)):
+                self.es = tf.keras.callbacks.EarlyStopping(patience=10)
+                self.history = self.model.fit(self.data.X_train[0:int(len(self.data.X_train)/trainingDsetSize)], self.data.y_train[0:int(len(self.data.y_train)/trainingDsetSize)], epochs=iterators, callbacks=[self.es], validation_data=(self.data.X_valid, self.data.y_valid))
+            else:
+                self.history = self.model.fit(self.data.X_train[0:int(len(self.data.X_train)/trainingDsetSize)], self.data.y_train[0:int(len(self.data.y_train)/trainingDsetSize)], epochs=iterators)
+        #Models to make: BIRCH, K_Means, Spectral, Mixture of Gaussians, Maybe: Optics
         elif(self.searchDone == False and self.isClusterModel):
             self.tmpData = self.data.X_train.copy()
             self.tmpTrain = np.ascontiguousarray(self.tmpData[0:int(len(self.tmpData)/trainingDsetSize)])
@@ -361,7 +374,9 @@ class model:
                     return self.rmse 
                 elif(returnPred):
                     return self.val_preds
-
+    def deleteModel(self):
+        del self.model
+        keras.backend.clear_session()
 class ensemble():
     def __init__(self, modelList, newModelDataframe, data):
         self.modelList = modelList
