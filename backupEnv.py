@@ -76,7 +76,6 @@ def getCurrentSolar(currentTime):
         data = ud.dataModels['Solar']['Simple']['default']['initData'].y_train.iloc[[currentTime]]
     except:
         data = ud.dataModels['Solar']['Simple']['default']['initData'].y_test.iloc[[currentTime-len(ud.dataModels['Solar']['Simple']['default']['initData'].y_train)]]
-    data = data.item()
     if data > MAX_SOLAR:
         data = MAX_SOLAR
     return int(data)
@@ -86,7 +85,6 @@ def getCurrentSolar(currentTime):
 def fgetElecDemand(currentTime):
     # if(currentTime <= 5):
     demand = ud.livePredict(currentTime, 'Demand', 'Future', 'default', numPast=5)
-    demand = demand[0][0]
     if demand > MAX_DEMAND:
         return MAX_DEMAND
     else:
@@ -99,7 +97,6 @@ def rgetElecDemand(currentTime):
         data = ud.dataModels['Demand']['Simple']['default']['initData'].y_train.iloc[[currentTime]]
     except:
         data = ud.dataModels['Demand']['Simple']['default']['initData'].y_test.iloc[[currentTime-len(ud.dataModels['Demand']['Simple']['default']['initData'].y_train)]]
-    data = data[0][0]
     if data > MAX_DEMAND:
         data = MAX_DEMAND
     return data
@@ -111,7 +108,7 @@ def getCurrentProduction(currentTime):
         tmpPlantInfo = getSpecPlantInformation(plant)
         tmpCurProd = tmpCurProd + tmpPlantInfo["CurrentLevel"]
     tmpCurProd = int(tmpCurProd+int(getCurrentSolar(currentTime)))
-    #print(tmpCurProd)
+    print(tmpCurProd)
     return tmpCurProd
 
 #Reset the simulation
@@ -236,14 +233,15 @@ def liveGraph(xVals, yVals):
 # sim.initDefaultSimulation()
 sim.initDefaultSimulation(load=False, save=False)
 
-# Define the neural network model for each production unit
-class ProductionUnitModel(tf.keras.Model):
+
+# Define the neural network model
+class PolicyNetwork(tf.keras.Model):
     def __init__(self):
-        super(ProductionUnitModel, self).__init__()
-        self.dense1 = tf.keras.layers.Dense(128, activation='relu')
-        self.dense2 = tf.keras.layers.Dense(64, activation='relu')
-        self.dense3 = tf.keras.layers.Dense(32, activation='relu')
-        self.dense4 = tf.keras.layers.Dense(1, activation='linear')
+        super(PolicyNetwork, self).__init__()
+        self.dense1 = tf.keras.layers.Dense(1024, activation='relu')
+        self.dense2 = tf.keras.layers.Dense(512, activation='relu')
+        self.dense3 = tf.keras.layers.Dense(256, activation='relu')
+        self.dense4 = tf.keras.layers.Dense(action_dim, activation='softmax')
 
     def call(self, state):
         x = self.dense1(state)
@@ -251,30 +249,55 @@ class ProductionUnitModel(tf.keras.Model):
         x = self.dense3(x)
         return self.dense4(x)
 
-# Create a list of models, one for each production unit
-num_units = 7
-models = [ProductionUnitModel() for _ in range(num_units)]
+# Initialize the model
+policy_network = PolicyNetwork()
 optimizer = tf.keras.optimizers.Adam(learning_rate)
 
-# Define the preprocessing function for the state
+'''
 def preprocess_state(state):
-    normalized_state = []
+    # Assuming state is a dictionary with keys 'plant_info' containing information about current production levels for each plant
     
-    # Normalize current time
-    normalized_state.append(state[0] / MAXTIME)
+    # Extract current levels and maximum ramp rates for all power plants
+    current_levels = [plant['currentLevel'] for plant in ud.plantInformation]
+    max_ramp_rates = [plant['MaxRamp'] for plant in ud.plantInformation]
     
-    # Normalize predicted demand
-    normalized_state.append(state[1] / MAX_DEMAND)
+    # Normalize the current levels and maximum ramp rates
+    normalized_current_levels = normalize_data(current_levels)
+    normalized_max_ramp_rates = normalize_data(max_ramp_rates)
     
-    # Normalize solar data
-    normalized_state.append(state[2] / MAX_SOLAR)
+    # Combine the normalized data into a single array
+    processed_state = np.concatenate((normalized_current_levels, normalized_max_ramp_rates))
+    
+    return processed_state
+
+def normalize_data(data):
+    # Normalize data to have zero mean and unit variance
+    mean = np.mean(data)
+    std = np.std(data)
+    normalized_data = (data - mean) / (std + 1e-8)  # Add a small value to avoid division by zero
+    
+    return normalized_data
+'''
+
+def preprocess_state(state):
+    # Normalize each component of the state separately
+    
+    # Normalize current time (assuming it's within a specific range)
+    normalized_time = state[0] / MAXTIME
+    
+    # Normalize predicted demand (assuming it's within a specific range)
+    normalized_demand = state[1] / MAX_DEMAND
+    
+    # Normalize solar data (assuming it's within a specific range)
+    normalized_solar = state[2] / MAX_SOLAR
     
     # Normalize information about each power plant
+    normalized_plant_info = []
     for i in range(3, len(state), 4):
-        current_level = state[i]
-        max_ramp_rate = state[i + 1]
-        min_level = state[i + 2]
-        max_level = state[i + 3]
+        current_level = state[i]  # Current level
+        max_ramp_rate = state[i + 1]  # Maximum ramp rate
+        min_level = state[i + 2]  # Minimum level
+        max_level = state[i + 3]  # Maximum level
         
         # Normalize current level
         normalized_current_level = (current_level - min_level) / (max_level - min_level)
@@ -282,105 +305,91 @@ def preprocess_state(state):
         # Normalize maximum ramp rate
         normalized_ramp_rate = max_ramp_rate / MAX_RAMP_RATE
         
-        # Append normalized values to the state
-        normalized_state.extend([normalized_current_level, normalized_ramp_rate, min_level, max_level])
+        # Add normalized plant information to the list
+        normalized_plant_info.extend([normalized_current_level, normalized_ramp_rate, min_level, max_level])
     
-    normalized_state = np.array(normalized_state)
-    normalized_state = np.reshape(normalized_state, (1, -1))
-    return normalized_state.astype('float32')
-'''
-# Define the function to choose actions for each production unit
-def choose_actions(states):
-    actions = []
-    for i, state in enumerate(states):
-        action = models[i](state)
-        actions.append(action)
-    return actions
-'''
+    # Combine all normalized components into a single array
+    processed_state = np.array([normalized_time, normalized_demand, normalized_solar] + normalized_plant_info)
+    
+    processed_state = np.reshape(processed_state, (1, -1))
+    return processed_state
 
-def choose_action_from_distribution(action_probabilities, min_level, max_level, max_ramp_rate, current_level):
-    # Scale action probabilities to the allowable range
-    scaled_probabilities = np.zeros_like(action_probabilities)
-    allowable_range = np.arange(min_level, max_level + 1)  # Allowable range of actions
-
-    for i in range(len(allowable_range)):
-        scaled_probabilities[i] = action_probabilities[i]
-    scaled_probabilities /= np.sum(scaled_probabilities)  # Normalize probabilities
-    
-    # Choose action based on scaled probabilities
-    action = np.random.choice(allowable_range, p=scaled_probabilities)
-    
-    # Ensure action is within the bounds of the maximum ramp rate
-    action = min(action, current_level + max_ramp_rate)
-    action = max(action, current_level - max_ramp_rate)
-    
-    # Ensure action is within the allowable range
-    action = min(max(action, min_level), max_level)
-    
-    return action
-
-
-def choose_action(states):
-    # Assuming state contains information about current production levels for each unit
+def choose_action(state):
+    # Assuming state contains information about current production levels for each plant
     # You need to preprocess the state to make it suitable for feeding into the policy network
-    actions = []
-    for i, plant in enumerate(ud.plantInformation):
-        state = states[i]
-        processed_state = preprocess_state(state)
+    processed_state = preprocess_state(state)
     
-        # Pass the processed state through the policy network to get logits
-        logits = models[i](processed_state)
-        
-        # Apply softmax to logits to get probabilities
-        probabilities = tf.nn.softmax(logits)
-        
-        # Convert probabilities tensor to numpy array
-        probabilities_np = probabilities.numpy().squeeze()
-        
-        current_level = state[i * 4 + 3]  # Current level of the unit
-        max_ramp_rate = state[i * 4 + 4]  # Maximum ramp rate of the unit
-        MIN_PRODUCTION_LEVEL = state[i * 4 + 5]  # Minimum production level of the unit
-        MAX_PRODUCTION_LEVEL = state[i * 4 + 6]  # Maximum production level of the unit
+    # Pass the processed state through the policy network to get action probabilities
+    action_probabilities = policy_network(processed_state)
+    
+    # Initialize list to store actions for each power plant
+    actions = []
+    
+    # Loop through each power plant
+    for i, plant in enumerate(ud.plantInformation):
+        current_level = plant['currentLevel']
+        max_ramp_rate = plant['MaxRamp']
+        MIN_PRODUCTION_LEVEL = plant['Min']
+        MAX_PRODUCTION_LEVEL = plant['Max']
         
         # Calculate the allowable range of production levels based on the maximum ramp rate
         min_level = max(current_level - max_ramp_rate, MIN_PRODUCTION_LEVEL)
         max_level = min(current_level + max_ramp_rate, MAX_PRODUCTION_LEVEL)
         
-        # Choose the action based on the probability distribution
-        chosen_action = choose_action_from_distribution(probabilities_np, min_level, max_level, max_ramp_rate, current_level)
-        actions.append(chosen_action)
-        ud.setPlantLevel(plant, chosen_action)
+        # Get the action probability distribution for this power plant
+        plant_action_probabilities = action_probabilities[i]
         
+        # Choose the action based on the probability distribution
+        chosen_action = choose_action_from_distribution(plant_action_probabilities, min_level, max_level, max_ramp_rate, current_level)
+        actions.append(chosen_action)
+    
     return actions
 
+def choose_action_from_distribution(action_probabilities, min_level, max_level, max_ramp_rate, current_level):
+    # Discrete action selection based on action probabilities
+    action = np.argmax(action_probabilities)  # Choose action with highest probability
+    action = min(action, current_level+max_ramp_rate)
+    action = max(action, current_level-max_ramp_rate)
+    action = min(max(action, min_level), max_level)  # Ensure action is within allowable range
+    return action
 
-def get_state(unit, current_time):
+# Function to train the policy network
+def train_step(states, joint_actions, rewards):
+    with tf.GradientTape() as tape:
+        logits = policy_network(states)
+        loss = compute_loss(logits, joint_actions, rewards)
+    gradients = tape.gradient(loss, policy_network.trainable_variables)
+    optimizer.apply_gradients(zip(gradients, policy_network.trainable_variables))
+
+# Define loss function
+def compute_loss(logits, actions, rewards):
+    neg_log_prob = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=actions)
+    loss = tf.reduce_mean(neg_log_prob * rewards)
+    return loss
+
+def get_state(current_time):
     # Get predicted demand and solar data for the current time
     predicted_demand = fgetElecDemand(current_time)
     solar_data = getSolarPred(current_time)
     
     # Get current levels and maximum ramp rates of all power plants
-    plant_info = dict()
-    for unit in range(len(sim.plantList)):
-        current_level = getSpecPlantInformation(sim.plantList[unit])["CurrentLevel"]
-        max_ramp_rate = getSpecPlantInformation(sim.plantList[unit])["MaxRamp"]
-        min_level = getSpecPlantInformation(sim.plantList[unit])["Min"]
-        max_level = getSpecPlantInformation(sim.plantList[unit])["Max"]
-        plant_info.update({
-            "current_level": current_level,
-            "max_ramp_rate": max_ramp_rate,
-            "min_level": min_level,
-            "max_level": max_level
+    plant_info = []
+    for plant in sim.plantList:
+        plant_info.append({
+            "current_level": getSpecPlantInformation(plant)["CurrentLevel"],
+            "max_ramp_rate": getSpecPlantInformation(plant)["MaxRamp"],
+            "min_level": getSpecPlantInformation(plant)["Min"],
+            "max_level": getSpecPlantInformation(plant)["Max"]
         })
     
-    # Construct state array including time, demand, solar data, current levels, and maximum ramp rates for the specified unit
-    state = [current_time, predicted_demand, solar_data]
-    state.extend([plant_info["current_level"], plant_info["max_ramp_rate"], plant_info["min_level"], plant_info["max_level"]])
+    # Construct state array including time, demand, solar data, current levels, and maximum ramp rates
+    state = [current_time, predicted_demand[0][0], solar_data[0][0]]
+    for info in plant_info:
+        state.extend([info["current_level"], info["max_ramp_rate"], info["min_level"], info["max_level"]])
     
     return np.array(state)
 
-# Define the reward calculation function
-def calculate_reward(total_production, predDemand):
+def calculate_reward(predDemand, currentTime):
     # Calculate the difference between current production and predicted demand
     production_diff = abs(getCurrentProduction(currentTime) - predDemand)
     
@@ -392,53 +401,36 @@ def calculate_reward(total_production, predDemand):
     
     # Total reward as a combination of matching demand and efficiency
     total_reward = efficiency_reward
+    
     return total_reward
 
-# Define loss function
-def compute_loss(logits, actions, rewards):
-    neg_log_prob = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=actions)
-    loss = tf.reduce_mean(neg_log_prob * rewards)
-    return loss
-
 def getDone(currentTime):
-    if(currentTime >= 10):
-        return True
+    if (currentTime < MAXTIME-1):
+        return False 
     else:
-        return False
-
+        return True
+    
 # Function to interact with environment and collect experience
 def run_episode(currentTime):
-    allStates = []
-    allActions = []
-    allRewards = []
-    # Get current states for all production units
-    states = [get_state(unit, currentTime) for unit in ud.plantInformation]    
+    state = get_state(currentTime)  # Reset environment and get initial state
     episode_reward = 0
+    states, actions, rewards = [], [], []
     done = False
     while not done:
-        actions = choose_action(states)
-        print(actions)
-
-        # After updating all production levels, calculate reward
-        total_production = getCurrentProduction(currentTime)
-        predDemand = fgetElecDemand(currentTime)
-        reward = calculate_reward(total_production, predDemand)
-        next_states = get_state(currentTime)
+        action = choose_action(state)
+        next_state = get_state(currentTime)
+        reward = calculate_reward(next_state[1], currentTime)
         done =  getDone(currentTime)
         episode_reward += reward
-        
-        allStates.append(states)
-        allActions.append(actions)
-        allRewards.append(reward)
-        
-        states = next_states
+        states.append(state)
+        actions.append(action)
+        rewards.append(reward)
+        state = next_state
     return states, actions, rewards, episode_reward
 
 # Training loop
 num_episodes = 100
 for episode in range(num_episodes):
-    if currentTime > MAXTIME:
-        currentTime = 0
     states, actions, rewards, episode_reward = run_episode(currentTime)
 
     # Calculate discounted rewards
@@ -458,16 +450,15 @@ for episode in range(num_episodes):
     actions = tf.convert_to_tensor(actions, dtype=tf.int32)
     discounted_rewards = tf.convert_to_tensor(discounted_rewards, dtype=tf.float32)
 
-    for policy_network in models:
-        # Train the policy network
-        with tf.GradientTape() as tape:
-            logits = policy_network(states)
-            loss = compute_loss(logits, actions, discounted_rewards)
-        gradients = tape.gradient(loss, policy_network.trainable_variables)
-        optimizer.apply_gradients(zip(gradients, policy_network.trainable_variables))
+    # Train the policy network
+    with tf.GradientTape() as tape:
+        logits = policy_network(states)
+        loss = compute_loss(logits, actions, discounted_rewards)
+    gradients = tape.gradient(loss, policy_network.trainable_variables)
+    optimizer.apply_gradients(zip(gradients, policy_network.trainable_variables))
 
     print(f"Episode {episode + 1}: Total Reward = {episode_reward}")
-    
+
 xVals = []
 production = []
 predDemand = []

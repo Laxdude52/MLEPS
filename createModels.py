@@ -22,7 +22,7 @@ def createDefaultDNN(goal, modelType, group):
     normalizer.adapt(data.X_train)
     dnn_model = keras.Sequential([
         normalizer,
-        layers.Dense(63, activation='relu'),
+        layers.Dense(64, activation='relu'),
         layers.Dense(32, activation='relu'),
         layers.Dense(16, activation='relu'),
         layers.Dense(1)

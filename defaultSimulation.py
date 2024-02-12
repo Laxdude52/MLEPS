@@ -108,7 +108,8 @@ def defaultPlantInformation():
     prime1Info = dict()
     prime1Info.update({"Max": 625})
     prime1Info.update({"Min": 45})
-    prime1Info.update({"MaxRamp": 125})
+    prime1Info.update({"MaxRamp": 125}) #20%
+    prime1Info.update({"PercRamp": 20})
     prime1Info.update({"LeftRamp": 125})
     prime1Info.update({"CurrentLevel": 125})
     ud.newPlant("Primemover 1", prime1Info)
@@ -116,7 +117,8 @@ def defaultPlantInformation():
     prime2Info = dict()
     prime2Info.update({"Max": 790})
     prime2Info.update({"Min": 55})
-    prime2Info.update({"MaxRamp": 197})
+    prime2Info.update({"MaxRamp": 197}) #25%
+    prime2Info.update({"PercRamp": 25})
     prime2Info.update({"LeftRamp": 197})
     prime2Info.update({"CurrentLevel": 197})
     ud.newPlant("Primemover 2", prime2Info)
@@ -124,7 +126,8 @@ def defaultPlantInformation():
     prime3Info = dict()
     prime3Info.update({"Max": 645})
     prime3Info.update({"Min": 35})
-    prime3Info.update({"MaxRamp": 130})
+    prime3Info.update({"MaxRamp": 130}) #20%
+    prime3Info.update({"PercRamp": 20})
     prime3Info.update({"LeftRamp": 130})
     prime3Info.update({"CurrentLevel": 130})
     ud.newPlant("Primemover 3", prime3Info)
@@ -132,7 +135,8 @@ def defaultPlantInformation():
     steam1Info = dict()
     steam1Info.update({"Max": 625})
     steam1Info.update({"Min": 62})
-    steam1Info.update({"MaxRamp": 320})
+    steam1Info.update({"MaxRamp": 320}) #51%
+    steam1Info.update({"PercRamp": 51})
     steam1Info.update({"LeftRamp": 320})
     steam1Info.update({"CurrentLevel": 62})
     ud.newPlant("Steam 1", steam1Info)
@@ -140,7 +144,8 @@ def defaultPlantInformation():
     steam2Info = dict()
     steam2Info.update({"Max": 430})
     steam2Info.update({"Min": 45})
-    steam2Info.update({"MaxRamp": 250})
+    steam2Info.update({"MaxRamp": 250}) #58%
+    prime3Info.update({"PercRamp": 58})
     steam2Info.update({"LeftRamp": 250})
     steam2Info.update({"CurrentLevel": 250})
     ud.newPlant("Steam 2", steam2Info)
@@ -148,7 +153,8 @@ def defaultPlantInformation():
     turbine1Info = dict()
     turbine1Info.update({"Max": 330})
     turbine1Info.update({"Min": 35})
-    turbine1Info.update({"MaxRamp": 300})
+    turbine1Info.update({"MaxRamp": 300}) #90%
+    turbine1Info.update({"PercRamp": 20})
     turbine1Info.update({"LeftRamp": 300})
     turbine1Info.update({"CurrentLevel": 33})
     ud.newPlant("Turbine 1", turbine1Info)
@@ -156,7 +162,8 @@ def defaultPlantInformation():
     turbine2Info = dict()
     turbine2Info.update({"Max": 350})
     turbine2Info.update({"Min": 45})
-    turbine2Info.update({"MaxRamp": 300})
+    turbine2Info.update({"MaxRamp": 300}) #85%
+    turbine2Info.update({"PercRamp": 85})
     turbine2Info.update({"LeftRamp": 300})
     turbine2Info.update({"CurrentLevel": 45})
     ud.newPlant("Turbine 2", turbine2Info)
